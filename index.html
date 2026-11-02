@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="fr"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="robots" content="noindex,nofollow,noarchive"><meta name="atlas-stage" content="V27 - préproduction vierge"><meta name="theme-color" content="#e8ddc9"><meta name="description" content="ATLAS — Le jeu des possibles. 1 Cap. Une infinité de Missions. Construire une vie qui nous ressemble, pas à pas.">
+<meta name="robots" content="noindex,nofollow,noarchive"><meta name="atlas-stage" content="V28 - accueil mobile corrigé"><meta name="theme-color" content="#e8ddc9"><meta name="description" content="ATLAS — Le jeu des possibles. 1 Cap. Une infinité de Missions. Construire une vie qui nous ressemble, pas à pas.">
 <meta property="og:title" content="ATLAS — Le jeu des possibles"><meta property="og:description" content="Choisir sa direction, oser agir, garder la trace.">
 <title>ATLAS — Le jeu des possibles</title><meta name="theme-color" content="#1d3929">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1030,8 +1030,47 @@ body { overflow-x:clip; }
 }
 @media(max-width:480px){.hero img.original{object-position:68% center!important}.hero-bottom{font-size:.9rem}.atlas-wayfinder{display:none}.decor-star{font-size:2rem}}
 </style>
+<style id="atlas-v28-mobile-hero">
+/* ATLAS V28 — accueil mobile, typographie et pictogrammes ; couche de correction réversible */
+.atlas-ui-arrow-svg{display:inline-block;width:1.1em;height:1.1em;vertical-align:-.14em;flex:none;stroke:currentColor}
+.atlas-moving-arrow{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;line-height:1!important;font-family:Arial,sans-serif;font-variant-emoji:text}
+.atlas-hero-handwrite .atlas-hero-script{font-family:'Marck Script','Apple Chancery','Segoe Script',cursive}
+.atlas-original-art-link{display:none}
+.atlas-enter-short{display:none}
+@media(max-width:820px){
+ .atlas-enter-full{display:none}.atlas-enter-short{display:inline}
+ .site-top .top-actions .btn{max-width:none!important;min-width:0!important;overflow:visible!important;text-overflow:clip!important;white-space:nowrap!important;font-size:.69rem!important;padding:8px 11px!important}
+ .hero{height:clamp(700px,96svh,870px)!important;min-height:0!important;width:100%;max-width:100%;overflow:hidden;border-radius:0!important;background:#e9dcc5}
+ .hero img.original{width:100%!important;height:100%!important;position:absolute!important;inset:0!important;object-fit:cover!important;object-position:9% center!important;transform:none!important;filter:saturate(.91) contrast(1.035)!important}
+ .hero::before{background:none!important;animation:none!important}
+ .hero::after{inset:0!important;height:100%!important;background:linear-gradient(to bottom,rgba(246,237,220,.99) 0%,rgba(246,237,220,.94) 12%,rgba(246,237,220,.30) 29%,transparent 48%,transparent 74%,rgba(21,42,30,.39) 100%)!important;pointer-events:none}
+ .atlas-hero-heading{display:block!important;left:50%!important;top:clamp(94px,13.5svh,142px)!important;transform:translateX(-50%)!important;width:calc(100% - 28px)!important;max-width:435px!important;min-height:0!important;padding:24px 14px 27px!important;border-radius:12px;border:1px solid rgba(180,154,119,.62);box-shadow:0 12px 45px rgba(55,43,25,.16),inset 0 0 0 5px rgba(255,252,243,.4);background:radial-gradient(ellipse at 50% 40%,rgba(255,250,239,.995) 0%,rgba(250,242,226,.995) 75%,rgba(249,240,221,.97) 100%)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;z-index:7}
+ .atlas-hero-heading .atlas-hero-eyebrow{font-size:clamp(.52rem,2.25vw,.67rem)!important;letter-spacing:clamp(.12em,.7vw,.22em)!important;white-space:normal}
+ .atlas-hero-heading h1{margin:7px 0 0!important;font-size:clamp(3.75rem,16vw,5.75rem)!important;line-height:.96!important}
+ .atlas-hero-handwrite{height:clamp(61px,16vw,75px)!important;max-width:100%}
+ .atlas-hero-handwrite .atlas-hero-script{font-size:clamp(1.3rem,6.35vw,2.15rem)!important;letter-spacing:-.04em;max-width:100%;white-space:nowrap}
+ .atlas-hero-handwrite .atlas-pen{width:34px;transform-origin:bottom left}
+ .atlas-hero-handwrite .atlas-pen svg{width:34px;height:48px}
+ .atlas-hero-ornament{margin-top:1px;width:84%}
+ .atlas-hero-sub{font-size:clamp(1.15rem,4.8vw,1.36rem)!important;line-height:1.25!important;margin:8px auto 15px!important;max-width:23ch!important}
+ .atlas-hero-button{min-height:49px!important;padding:12px 16px!important;font-size:clamp(.71rem,3vw,.86rem)!important;width:auto;max-width:100%}
+ .atlas-original-art-link{display:inline-flex;align-items:center;justify-content:center;position:absolute;bottom:calc(20px + env(safe-area-inset-bottom,0px));right:16px;z-index:8;min-height:44px;padding:9px 15px;background:rgba(250,243,227,.94);border:1px solid #ad916f;border-radius:100px;color:#203b2c;font:600 .76rem/1.2 var(--sans);box-shadow:0 3px 17px rgba(24,31,22,.2)}
+ .atlas-original-art-link:focus-visible{outline:3px solid #b2874d;outline-offset:4px}
+}
+@media(max-width:360px){
+ .atlas-hero-heading{top:88px!important;padding:19px 11px 22px!important}
+ .atlas-hero-heading h1{font-size:clamp(3.55rem,16vw,4.3rem)!important}
+ .atlas-hero-handwrite .atlas-hero-script{font-size:clamp(1.19rem,6.1vw,1.43rem)!important}
+ .atlas-hero-sub{font-size:1.13rem!important}
+}
+@media(min-width:821px){.atlas-hero-heading{background:radial-gradient(ellipse at 50% 43%,rgba(251,245,233,.997) 0%,rgba(250,244,233,.99) 66%,rgba(249,241,226,.90) 87%,transparent 100%)!important}}
+@media(prefers-reduced-motion:reduce){
+ .hero .original,.atlas-hero-heading *,.atlas-hero-heading::before{animation:none!important;transition:none!important;opacity:1!important;clip-path:none!important}
+ .atlas-hero-handwrite .atlas-pen{display:none!important}
+}
+</style>
 </head><body>
-<div class="atlas-staging-sign" aria-label="Site de prépublication, copie vierge">ATLAS · V26 VIERGE · TEST</div>
+<div class="atlas-staging-sign" aria-label="Site de prépublication, copie vierge">ATLAS · V28 · TEST MOBILE</div>
 <a href="#main" class="skip-link">Aller au contenu</a>
 <div id="app"><main class="wrap" style="padding:7vh 0;min-height:70vh"><section style="background:#f8efdf;padding:30px;border-radius:24px;border:1px solid #bba17b"><div class="eyebrow">ATLAS · Le jeu des possibles</div><h1 style="font-size:clamp(3rem,10vw,5rem);margin:15px 0">1 Cap. Une infinité de Missions.</h1><p class="lead">Choisir sa direction, avancer à son rythme et garder une trace.</p><p>Chargement de ton Atlas… Si cette page reste affichée, ouvre le site avec Safari ou Chrome depuis une adresse web HTTPS.</p></section></main></div><div id="dialog-root"></div><div id="toast" role="status" aria-live="polite"></div>
 <script>
@@ -1055,7 +1094,7 @@ const TERRITORIES = Object.freeze({
  autonomie:{name:'Autonomie',motto:'Choisir sa liberté',symbol:'⌂'},
  corps:{name:'Corps',motto:'Habiter son corps',symbol:'☼'},
  esprit:{name:'Esprit',motto:'Cultiver sa pensée',symbol:'✦'},
- savoir:{name:'Savoir-faire',motto:'Apprendre par le geste',symbol:'✦'}
+ savoir:{name:'Savoir-faire',motto:'Apprendre par le geste',symbol:'✶'}
 });
 const HORIZONS={day:'Aujourd’hui',week:'Cette semaine',month:'Ce mois-ci',long:'À long terme'};
 const uuid=()=>globalThis.crypto?.randomUUID?.()||`a${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
@@ -1215,7 +1254,7 @@ const navlinks=[['atlas','⌖','La carte'],['missions','✧','Missions'],['rythm
 function notify(message){toastEl.textContent=message;toastEl.classList.add('show');clearTimeout(notify.timer);notify.timer=setTimeout(()=>toastEl.classList.remove('show'),3400)}
 function persist(updated){state={...updated,updatedAt:new Date().toISOString()};if(!saveLocal(state))notify('Enregistrement local indisponible : exporte tes données.');if(session&&cloudStore&&cloudStore.ready&&!cloudConflict){cloudStore.save(state).catch(e=>{console.warn('ATLAS sync',e);cloudConflict=true;notify('Cloud indisponible ou version différente : ton Atlas reste enregistré sur cet appareil.');});}render();}
 const link=(path,txt,cls='')=>`<a class="${cls}" href="${url(path)}">${txt}</a>`;
-function header(active=''){if(active==='mission')active='missions';const isPublic=active==='home';return `<header class="site-top ${isPublic?'overlay':''}"><a class="brand" href="#/" aria-label="Accueil ATLAS">${ring()}<span>ATLAS</span></a><nav class="top-links" aria-label="Navigation"><a href="#/public" ${active==='public'?'class="current" aria-current="page"':''}>L'Atlas de Cloe</a><a href="#/atlas" ${active==='atlas'?'class="current" aria-current="page"':''}>Mon Atlas</a><a href="#/aujourdhui" ${active==='aujourdhui'?'class="current" aria-current="page"':''}>Aujourd’hui</a><a href="#/missions" ${active==='missions'?'class="current" aria-current="page"':''}>Mes Missions</a><a href="#/carnet" ${active==='carnet'?'class="current" aria-current="page"':''}>Carnet</a><a href="#/bibliotheque" ${active==='bibliotheque'?'class="current" aria-current="page"':''}>Bibliothèque</a></nav><div class="top-actions">${link('atlas','Entrer dans mon Atlas →','btn slim '+(isPublic?'cream':''))}</div></header>`;}
+function header(active=''){if(active==='mission')active='missions';const isPublic=active==='home';return `<header class="site-top ${isPublic?'overlay':''}"><a class="brand" href="#/" aria-label="Accueil ATLAS">${ring()}<span>ATLAS</span></a><nav class="top-links" aria-label="Navigation"><a href="#/public" ${active==='public'?'class="current" aria-current="page"':''}>L'Atlas de Cloe</a><a href="#/atlas" ${active==='atlas'?'class="current" aria-current="page"':''}>Mon Atlas</a><a href="#/aujourdhui" ${active==='aujourdhui'?'class="current" aria-current="page"':''}>Aujourd’hui</a><a href="#/missions" ${active==='missions'?'class="current" aria-current="page"':''}>Mes Missions</a><a href="#/carnet" ${active==='carnet'?'class="current" aria-current="page"':''}>Carnet</a><a href="#/bibliotheque" ${active==='bibliotheque'?'class="current" aria-current="page"':''}>Bibliothèque</a></nav><div class="top-actions">${link('atlas','<span class="atlas-enter-full">Entrer dans mon Atlas →</span><span class="atlas-enter-short">Mon Atlas</span>','btn slim '+(isPublic?'cream':''))}</div></header>`;}
 function bottomNav(active){if(['home','start','public'].includes(active))return '';return `<nav class="mobile-nav" aria-label="Navigation personnelle">${navlinks.map(([slug,icon,title])=>`<a class="${active===slug||active==='mission'&&slug==='missions'?'active':''}" href="${url(slug)}"><span aria-hidden="true">${icon}</span>${title}</a>`).join('')}</nav>`;}
 function footer(){return `<footer class="foot"><div><span class="smallcaps">ATLAS · LE JEU DES POSSIBLES</span><p>Choisir sa direction. Oser agir. Garder la trace.</p></div><div><a href="#/public">L'Atlas de Cloe</a> &nbsp;·&nbsp; <a href="#/atelier">Atelier éditorial</a> &nbsp;·&nbsp; <button class="footer-settings" type="button" data-action="settings">Compte et sauvegarde</button></div></footer>`;}
 function pageFrame(active,body){root.innerHTML=header(active)+`<main id="main" class="page">${body}</main>`+footer()+bottomNav(active);}
@@ -1233,7 +1272,7 @@ function actionHorizonPanel(id){const all=state.actions.filter(a=>!a.archived&&a
 function todayPage(){const focus=missionAttention(state);pageFrame('aujourdhui',`<div class="wrap app-main"><div class="section-heading"><div><span class="eyebrow">Mon quotidien</span><h1>Objectifs</h1><p class="lead">De petits engagements, reliés à tes grandes Missions.</p></div><button class="btn" data-action="new-action">+ Un objectif</button></div><div class="todo-horizons">${Object.keys(HORIZONS).map(actionHorizonPanel).join('')}</div><p class="todo-reset-note">Les objectifs récurrents redeviennent disponibles au début de leur prochaine période. Leur historique reste conservé dans ton Atlas et dans une sauvegarde exportable.</p><div class="section-heading mission-attention-head"><div><div class="eyebrow">Garder le cap</div><h2>Les Missions qui m’attendent.</h2></div></div><div class="attention-list">${focus.length?focus.map(({mission:m,daysWithoutTrace,needsAttention,next})=>{const latest=state.checkins.filter(c=>c.missionId===m.id).sort((a,b)=>b.date.localeCompare(a.date))[0];return `<article class="attention-item"><div><div class="eyebrow">${h(TERRITORIES[m.territory].name)} · ${needsAttention?'Un moment pour reprendre':'En chemin'}</div><h3>${h(m.title)}</h3><p>${next?'Prochain passage : '+h(next.title):'Crée une nouvelle Étape.'}</p>${latest?`<div class="next-intention">Prochain pas que j'ai choisi : <strong>${h(latest.nextAction)}</strong>${latest.scheduledFor?' · '+date(latest.scheduledFor):''}</div>`:''}<small>${needsAttention?`${daysWithoutTrace} jours sans nouvelle trace. Le chemin est toujours ouvert.`:'Tu peux avancer à ton rythme.'}</small></div><div class="attention-actions"><a class="btn outline" href="#/mission/${attr(m.id)}">Explorer</a><button class="btn" data-action="checkin" data-id="${attr(m.id)}">Faire le point</button></div></article>`}).join(''):`<div class="empty-engraving"><h3>Une nouvelle Mission ?</h3><button class="btn" data-action="new-mission">Tracer un chemin</button></div>`}</div></div>`); }
 function atlasPage(){pageFrame('atlas',`<div class="wrap app-main"><div class="section-heading"><div><span class="eyebrow">✧ Le voyage intérieur</span><h1>Mon Atlas</h1><p class="muted">${h(state.cap||'Une direction. Autant de chemins que nécessaire.')}</p></div><button class="btn" data-action="new-mission">+ Une nouvelle Mission</button></div><div class="atlas-grid">${leftFolio()}${mapScene()}${rightFolio()}</div><div class="today-banner"><div><div class="eyebrow">Ton prochain geste</div><h3>Le moment d'agir est aujourd'hui.</h3><p>Consulte tes engagements et reprends une Mission, même après une pause.</p></div><div class="atlas-banner-actions"><button class="btn cream" data-action="souvenir">Garder une carte-souvenir</button><a href="#/aujourdhui" class="btn">Ouvrir mon quotidien →</a></div></div><div class="section-heading" style="margin-top:58px"><div><div class="eyebrow">Au fil du temps</div><h2>Les chemins ouverts.</h2></div>${link('missions','Toutes mes Missions ↗','link')}</div>${state.missions.length?`<div class="grid-cards">${state.missions.slice(0,4).map(m=>missionCard(m)).join('')}</div>`:emptyMission()}</div>`);}
 function emptyMission(){return `<div class="empty-engraving"><div class="glyph">✧</div><h3>Le premier chapitre est encore à écrire.</h3><p>Une Mission peut être minuscule ou durer toute une vie. Elle t'appartient.</p><button class="btn" data-action="new-mission">Écrire ma première Mission →</button></div>`;}
-function missionCard(m){const p=progress(m),t=TERRITORIES[m.territory];return `<a href="#/mission/${encodeURIComponent(m.id)}" class="mission-tile"><img src="${terrImage(m.territory)}" alt="" loading="lazy"><div class="inner"><span class="eyebrow">${h(t.name)} · ${m.mode==='guided'?'Chemin guidé':'Voie libre'}</span><h3>${h(m.title)}</h3><div class="mini-progress"><span style="width:${p.percent}%"></span></div><div class="meta">${p.done}/${p.total} Étape${p.total>1?'s':''} · ${p.finished?'Mission accomplie':'Chemin en cours ↗'}</div></div></a>`;}
+function missionCard(m){const p=progress(m),t=TERRITORIES[m.territory];return `<a href="#/mission/${encodeURIComponent(m.id)}" class="mission-tile"><img src="${terrImage(m.territory)}" alt="" loading="lazy"><div class="inner"><span class="eyebrow">${h(t.name)} · ${m.mode==='guided'?'Chemin guidé':'Voie libre'}</span><h3>${h(m.title)}</h3><div class="mini-progress"><span style="width:${p.percent}%"></span></div><div class="meta">${p.done}/${p.total} Étape${p.total>1?'s':''} · ${p.finished?'Mission accomplie':'Chemin en cours ↗︎'}</div></div></a>`;}
 function missionsPage(){const all=state.missions.filter(m=>filterTerritory==='all'||m.territory===filterTerritory);pageFrame('missions',`<div class="wrap app-main"><div class="section-heading"><div><div class="eyebrow">Mon itinéraire</div><h1>Mes Missions</h1><p class="muted">Chaque chemin commence par un premier geste.</p></div><button class="btn" data-action="new-mission">+ Nouvelle Mission</button></div><div style="display:flex;gap:9px;flex-wrap:wrap;margin:28px 0">${[['all','Tous les chemins'],...Object.entries(TERRITORIES).map(([id,t])=>[id,t.name])].map(([id,name])=>`<button type="button" data-filter="${id}" class="btn slim ${id===filterTerritory?'':'transparent'}">${h(name)}</button>`).join('')}</div>${all.length?`<div class="grid-cards">${all.map(m=>missionCard(m)).join('')}</div>`:emptyMission()}</div>`);}
 function missionPage(id){const m=state.missions.find(m=>m.id===id);if(!m){navigate('missions');return;}const t=TERRITORIES[m.territory],p=progress(m),n=m.steps.length,H=Math.max(510,n*172+125);let coords=m.steps.map((_,i)=>[i%2===0?215:485,122+i*172]);let path=coords.map(([x,y],i)=>i===0?`M ${x} ${y}`:`Q 350 ${y-87} ${x} ${y}`).join(' ');let doneCount=m.steps.findIndex(s=>!s.doneAt);if(doneCount<0)doneCount=n;const progressed=coords.slice(0,Math.max(1,doneCount));let passed=progressed.map(([x,y],i)=>i===0?`M ${x} ${y}`:`Q 350 ${y-87} ${x} ${y}`).join(' ');let cur=coords[Math.min(doneCount,Math.max(0,n-1))]||[350,100];pageFrame('mission',`<div class="wrap app-main"><a href="#/missions" class="link">← Mes Missions</a><div class="mission-hero"><div class="mission-hero-copy"><div class="eyebrow">${h(t.name)} · ${m.mode==='guided'?'Chemin guidé':'Voie libre'}</div><h1>${h(m.title)}</h1><p class="lead">${h(m.why||t.motto)}</p><div class="rule"></div><span class="pill">${p.done} passage${p.done>1?'s':''} sur ${p.total}</span> <span class="pill">${p.finished?'✦ Mission accomplie':'✧ Mon chemin est ouvert'}</span></div><div class="mission-hero-art"><img src="${terrImage(m.territory)}" alt="Illustration du Territoire ${h(t.name)}"></div></div><div class="section-heading"><div><div class="eyebrow">La carte de cette Mission</div><h2>À chaque pas, une trace.</h2></div><button class="btn outline" data-action="new-step" data-id="${attr(m.id)}">+ Une Étape</button></div>${n?`<div class="mission-map" style="height:${H}px"><div class="journey-start">Le commencement</div><svg class="journey-svg" viewBox="0 0 700 ${H}" preserveAspectRatio="none" aria-hidden="true"><path class="basepath" d="${path}"/><path class="passed" d="${passed}"/></svg>${m.steps.map((st,i)=>{const [x,y]=coords[i],locked=!stepCanOpen(m,i)&&!st.doneAt;return `<button type="button" class="waypoint ${st.doneAt?'done':''} ${locked?'locked':''}" style="left:${x/700*100}%;top:${y}px" data-action="open-step" data-id="${attr(st.id)}" data-mission="${attr(m.id)}" ${locked?'disabled':''}><span class="seal">${st.doneAt?'✦':locked?'⌑':'✧'}</span><strong>${h(st.title)}</strong><small>${st.doneAt?'Scellé le '+date(st.doneAt):locked?'À découvrir':'À vivre · toucher pour avancer'}</small></button>`}).join('')}<div class="journey-end">${p.finished?'✧ Ce chemin a été vécu.':'La suite s’écrit en chemin.'}</div></div>`:emptyStep(m)}<div class="folio-footer">Le chemin compte autant que l'arrivée. ✧</div><div class="recovery"><div class="eyebrow" style="color:#e6c48b">Le courage de recommencer</div><h3>Un détour n'est pas une fin.</h3><p>Une Mission semble difficile ou s'est arrêtée ? Reviens au sens de ton Cap, choisis un petit pas réalisable et reprends ton chemin sans repartir de zéro.</p><button class="btn" data-action="recover" data-id="${attr(m.id)}">Retrouver mon chemin →</button></div>${missionRecords(m)}${p.finished?`<div class="chapter-finished"><div class="chapter-halo">✦</div><div class="eyebrow">Chapitre accompli · ${date(m.completedAt)}</div><h3>Cette Mission fait désormais partie de ton histoire.</h3><p>Tu peux célébrer le chemin parcouru, écrire ton bilan ou ouvrir une nouvelle grande Mission dans le Territoire ${h(t.name)}.</p><div class="actions"><button class="btn cream" data-action="celebrate-mission" data-id="${attr(m.id)}">✦ Revoir ma célébration</button><button class="btn outline" data-action="new-note" data-mission="${attr(m.id)}">Écrire mon bilan</button><button class="btn" data-action="new-mission-in-territory" data-id="${attr(m.territory)}">+ Une nouvelle Mission</button></div></div>`:''}</div>`);}
 function missionRecords(m){const items=[...(state.checkins||[]).filter(c=>c.missionId===m.id).map(c=>({date:c.date,title:'Faire le point',detail:[c.difficulty?'Constat : '+c.difficulty:'', 'Prochain pas : '+c.nextAction, c.scheduledFor?'Prévu pour le '+date(c.scheduledFor):''].filter(Boolean)})),...(m.reflections||[]).filter(x=>x.type==='recovery').map(r=>({date:r.date,title:'Retrouver mon chemin',detail:['Frein : '+r.reason,'Reprise choisie : '+r.plan]}))].sort((a,b)=>b.date.localeCompare(a.date));return items.length?`<section class="mission-records"><div class="eyebrow">Ma mémoire de Mission</div><h3>Les bilans et les recommencements.</h3>${items.map(x=>`<article class="mission-record"><time>${date(x.date)}</time><h4>${h(x.title)}</h4>${x.detail.map(line=>`<p>${h(line)}</p>`).join('')}</article>`).join('')}</section>`:'';}
@@ -1266,7 +1305,9 @@ function animateArrows(main){
       if(!match)continue;
       const start=text.lastIndexOf(match[1]);
       const before=document.createTextNode(text.slice(0,start));
-      const span=document.createElement('span');span.className='atlas-moving-arrow';span.setAttribute('aria-hidden','true');span.textContent=match[1];
+      const span=document.createElement('span');span.className='atlas-moving-arrow';span.setAttribute('aria-hidden','true');span.innerHTML=match[1]==='↗'
+        ?'<svg class="atlas-ui-arrow-svg" width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 15L15 5M7 5h8v8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+        :'<svg class="atlas-ui-arrow-svg" width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 10h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       const after=document.createTextNode(text.slice(start+1));
       node.replaceWith(before,span,after);
       break;
@@ -1646,7 +1687,7 @@ function showEditor(){
 const originalHeader=header;
 header=function(active){
  const html=originalHeader(active);
- return html.replace('<div class="top-actions">',`<div class="top-actions"><button type="button" class="v12-account" data-action="settings" aria-label="Compte et sauvegarde" title="Compte et sauvegarde">${session?(cloudConflict?'⚠':'✓'):'◌'} <span>Compte</span></button>`);
+ return html.replace('<div class="top-actions">',`<div class="top-actions"><button type="button" class="v12-account" data-action="settings" aria-label="Compte et sauvegarde" title="Compte et sauvegarde">${session?(cloudConflict?'!':'✓'):'◌'} <span>Compte</span></button>`);
 };
 // Une page du carnet n'est jamais figée : lecture manuscrite puis modification.
 openNote=function(id){
@@ -1698,7 +1739,7 @@ function enhancePage(){
   if(c===''||c==='/'){
     const hero=root.querySelector('.hero');
     if(hero&&!hero.querySelector('.hero-ink-accent')){
-      const ink=document.createElement('div');ink.className='hero-ink-accent';ink.innerHTML='<span class="pen" aria-hidden="true">✒</span><span class="script">Une vie qui s’écrit...</span>';hero.append(ink);
+      const ink=document.createElement('div');ink.className='hero-ink-accent';ink.innerHTML='<span class="pen" aria-hidden="true">✎</span><span class="script">Une vie qui s’écrit...</span>';hero.append(ink);
     }
   }
 }
@@ -1878,9 +1919,7 @@ window.ATLAS_V12={getContent:()=>copy(sitePublished),getDraft:()=>copy(siteDraft
  function hero(){
   const area=document.querySelector('.hero');
   if(!area)return;
-  const mobileHero=window.matchMedia('(max-width: 820px)').matches;
   const existing=area.querySelector('.atlas-hero-heading');
-  if(mobileHero){if(existing)existing.remove();return;}
   if(existing)return;
   const heading=document.createElement('div');
   heading.className='atlas-hero-heading';
@@ -1890,7 +1929,17 @@ window.ATLAS_V12={getContent:()=>copy(sitePublished),getDraft:()=>copy(siteDraft
    <div class="atlas-hero-ornament" aria-hidden="true">✧</div>
    <p class="atlas-hero-sub">Construis une vie qui te ressemble, pas à pas.</p>
    <button class="btn atlas-hero-button" type="button" data-action="begin">Commencer mon voyage <span aria-hidden="true">→</span></button>`;
-  area.append(heading);
+  area.appendChild(heading);
+  if(!area.querySelector('.atlas-original-art-link')){
+    const artLink=document.createElement('a');
+    artLink.className='atlas-original-art-link';
+    artLink.href='./assets/accueil-illustration-originale.webp';
+    artLink.target='_blank';
+    artLink.rel='noopener';
+    artLink.setAttribute('aria-label','Voir le tableau original entier dans un nouvel onglet');
+    artLink.textContent='Voir le paysage entier';
+    area.appendChild(artLink);
+  }
  }
  function shelf(){
   const existing=document.querySelector('.v12-shelf');if(existing)existing.remove();
