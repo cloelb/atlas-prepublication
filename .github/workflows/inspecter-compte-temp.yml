@@ -1,0 +1,27 @@
+name: Inspection temporaire interface Compte
+on:
+  push:
+    branches: [simplifier-compte-2026-11-03]
+permissions:
+  contents: read
+jobs:
+  inspecter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reperer les composants du compte
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          content=Path("index.html").read_text(encoding="utf-8")
+          print("FILE_LEN",len(content),"LINES",content.count("\n")+1)
+          terms=["Mes souvenirs et mon compte", "Sauvegarde complète et restauration", "Créer mon compte / me connecter", "Télécharger ma sauvegarde privée", "CONSERVER MON ATLAS","Compte","signInWithPassword","signUp","auth.signIn", "openAccount", "openSave", "supabase"]
+          for term in terms:
+              positions=[m.start() for m in re.finditer(re.escape(term),content,re.I)]
+              print("SEARCH",repr(term),"COUNT",len(positions))
+              for p in positions[:8]:
+                  fragment=content[max(0,p-250):min(len(content),p+400)]
+                  fragment=re.sub(r"(?i)(sb_publishable_[a-z0-9_\-]+|eyJ[A-Za-z0-9_\-]{70,})","[REDACTED]",fragment)
+                  print("OFFSET",p,"CONTEXT",repr(fragment))
+          PY
