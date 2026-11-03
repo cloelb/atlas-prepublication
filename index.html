@@ -1465,7 +1465,28 @@ function auth(mode='signup'){
    <div class="form-row"><label for="atlas-auth-password">Mot de passe</label><input id="atlas-auth-password" required name="password" type="password" autocomplete="${create?'new-password':'current-password'}" minlength="${create?'10':'1'}"></div>
    <button class="btn" type="submit">${create?'Créer mon compte':'Se connecter'}</button>
   </form>
-  ${create?'<p class="muted text-sm">Tu recevras peut-être un e-mail pour confirmer ton inscription.</p>':''}`);
+  ${create?'<p class="muted text-sm">Tu recevras peut-être un e-mail pour confirmer ton inscription.</p>':'<button type="button" class="link" data-action="forgot-password" style="margin-top:14px">Mot de passe oublié ?</button>'}`);
+}
+
+
+function passwordResetRequest(){
+  if(!cloud)return notify('La récupération du compte est momentanément indisponible.');
+  const email=dialogs.querySelector('#atlas-auth-email')?.value?.trim()||'';
+  modal('Mot de passe oublié ?','Retrouver mon compte',
+    '<p>Indique ton adresse e-mail. Tu recevras un lien sécurisé pour choisir un nouveau mot de passe.</p>'+
+    '<form id="password-reset-request-form">'+
+    '<div class="form-row"><label for="atlas-reset-email">Adresse e-mail du compte</label><input id="atlas-reset-email" name="email" type="email" autocomplete="email" required value="'+attr(email)+'"></div>'+
+    '<button class="btn" type="submit">Recevoir le lien de réinitialisation</button></form>'+
+    '<p class="muted text-sm">Si tu ne trouves pas le message, vérifie aussi les courriers indésirables.</p>');
+}
+function passwordRecoveryForm(){
+  if(!cloud)return;
+  modal('Choisir un nouveau mot de passe','Mon compte',
+    '<p>Ce lien te permet de définir un nouveau mot de passe pour ton compte ATLAS.</p>'+
+    '<form id="password-recovery-form">'+
+    '<div class="form-row"><label for="atlas-new-password">Nouveau mot de passe (10 caractères minimum)</label><input id="atlas-new-password" name="password" type="password" autocomplete="new-password" minlength="10" required></div>'+
+    '<div class="form-row"><label for="atlas-confirm-password">Confirmer le nouveau mot de passe</label><input id="atlas-confirm-password" name="confirmPassword" type="password" autocomplete="new-password" minlength="10" required></div>'+
+    '<button class="btn" type="submit">Enregistrer mon nouveau mot de passe</button></form>');
 }
 
 // V25 : ne jamais écraser une version locale (ou distante) différente sans choix explicite.
@@ -1539,7 +1560,7 @@ root.addEventListener('click',e=>{const b=e.target.closest('[data-filter]');if(b
  }catch(err){notify(err.message);}});
 root.addEventListener('change',e=>{const el=e.target.closest('[data-action-check]');if(!el)return;const a=state.actions.find(x=>x.id===el.dataset.actionCheck);if(!a)return;const done=isActionDone(a);el.checked=done;modal(done?'Modifier une validation ?':'Valider un objectif ?','Objectifs',`<div class="confirm-action"><div class="eyebrow">${h(HORIZONS[a.horizon])}</div><h3>${h(a.title)}</h3><p>${done?'Tu peux retirer cette validation si tu l’as cochée par erreur. La trace passée reste dans ton historique général.':'As-tu réellement accompli cet objectif ? Il sera rangé dans « Fait aujourd’hui » ou dans la période correspondante, et son prochain cycle restera disponible.'}</p><div class="actions"><button class="btn" data-action="confirm-action" data-id="${attr(a.id)}">${done?'Oui, retirer la validation':'Oui, c’est accompli ✦'}</button><button class="btn outline" data-action="close">Annuler</button></div></div>`);});
 root.addEventListener('submit',e=>{const form=e.target;e.preventDefault();if(form.id==='cap-form'){try{persist(updateCap(state,form.elements.cap.value));navigate('atlas');if(cloud&&!session)notify('Ton Cap est créé. Pense à le sauvegarder dans ton compte.');else notify('Bienvenue dans ton Atlas.');}catch(err){notify(err.message);}return;}if(form.id==='atelier-form'){try{localStorage.setItem('atlas-v27-preprod-editor-title',form.elements.title.value);localStorage.setItem('atlas-v27-preprod-editor-body',form.elements.body.value);notify('Brouillon conservé localement, non publié.');render();}catch(err){notify('Sauvegarde du brouillon impossible.');}}});
-dialogs.addEventListener('click',async e=>{if(e.target.id==='overlay'){closeModal();return;}const a=e.target.closest('[data-action]');if(!a)return;e.preventDefault();const type=a.dataset.action,mid=a.dataset.mission,id=a.dataset.id;try{if(type==='close'){closeModal();return;}if(type==='souvenir'){souvenirPreview();return;}if(type==='download-souvenir'){downloadSouvenirPNG();return;}if(type==='share-souvenir'){await shareSouvenirPNG();return;}if(type==='confirm-action'){const changed=toggleAction(state,id);recentActionId=id;closeModal();persist(changed);notify('Objectif mis à jour.');return;}if(type==='new-mission-in-territory'){filterTerritory=id;closeModal();newMission();return;} if(type==='complete-step'){const updated=setStep(state,mid,id,true);closeModal();persist(updated);completionModal(mid);}else if(type==='undo-step'){closeModal();persist(setStep(state,mid,id,false));notify('Le passage est à nouveau ouvert.');}else if(type==='new-note')newNote(mid||'');else if(type==='export'){downloadJSON(state,`mon-atlas-${new Date().toISOString().slice(0,10)}.json`);notify('Export créé.');}else if(type==='export-empty'){downloadJSON(blank(),`ATLAS-SAUVEGARDE-VIERGE-${new Date().toISOString().slice(0,10)}.json`);notify('Une sauvegarde vierge a été téléchargée. Elle ne remplace aucune donnée.');}else if(type==='import')dialogs.querySelector('#import-file')?.click();else if(type==='export-legacy'){exportLegacyAtlas();notify('Archive historique exportée. Elle reste sur cet appareil.');}else if(type==='auth')auth();else if(type==='signout'){await cloudStore.signOut();switchAtlasAccount(null);closeModal();notify('Déconnecté. Tu retrouves ton Atlas invité vierge ou personnel à cet appareil.');}else if(type==='sync-now'){
+dialogs.addEventListener('click',async e=>{if(e.target.id==='overlay'){closeModal();return;}const a=e.target.closest('[data-action]');if(!a)return;e.preventDefault();const type=a.dataset.action,mid=a.dataset.mission,id=a.dataset.id;try{if(type==='close'){closeModal();return;}if(type==='souvenir'){souvenirPreview();return;}if(type==='download-souvenir'){downloadSouvenirPNG();return;}if(type==='share-souvenir'){await shareSouvenirPNG();return;}if(type==='confirm-action'){const changed=toggleAction(state,id);recentActionId=id;closeModal();persist(changed);notify('Objectif mis à jour.');return;}if(type==='new-mission-in-territory'){filterTerritory=id;closeModal();newMission();return;} if(type==='complete-step'){const updated=setStep(state,mid,id,true);closeModal();persist(updated);completionModal(mid);}else if(type==='undo-step'){closeModal();persist(setStep(state,mid,id,false));notify('Le passage est à nouveau ouvert.');}else if(type==='new-note')newNote(mid||'');else if(type==='export'){downloadJSON(state,`mon-atlas-${new Date().toISOString().slice(0,10)}.json`);notify('Export créé.');}else if(type==='export-empty'){downloadJSON(blank(),`ATLAS-SAUVEGARDE-VIERGE-${new Date().toISOString().slice(0,10)}.json`);notify('Une sauvegarde vierge a été téléchargée. Elle ne remplace aucune donnée.');}else if(type==='import')dialogs.querySelector('#import-file')?.click();else if(type==='export-legacy'){exportLegacyAtlas();notify('Archive historique exportée. Elle reste sur cet appareil.');}else if(type==='forgot-password')passwordResetRequest();else if(type==='auth')auth();else if(type==='signout'){await cloudStore.signOut();switchAtlasAccount(null);closeModal();notify('Déconnecté. Tu retrouves ton Atlas invité vierge ou personnel à cet appareil.');}else if(type==='sync-now'){
   if(!session)return notify('Connecte-toi d’abord.');
   // Une nouvelle lecture serveur est indispensable : un autre appareil peut avoir changé le cloud.
    await cloudStore.queue;cloudStore.ready=false;cloudStore.lastError=null;cloudConflict=false;
@@ -1576,6 +1597,43 @@ dialogs.addEventListener('click',async e=>{if(e.target.id==='overlay'){closeModa
  }}catch(err){notify(err.message);}});
 dialogs.addEventListener('change',async e=>{const el=e.target;if(el.id==='book-photo'){if(!el.files?.[0])return;try{bookCoverPending=await resizePhoto(el.files[0]);const note=dialogs.querySelector('#book-cover-notice');if(note)note.textContent='✓ Couverture enregistrée, prête à être ajoutée.';}catch(err){bookCoverPending=null;notify(err.message);}return;}if(el.id==='book-note-photo'){if(!el.files?.[0])return;try{bookCoverPending=await resizePhoto(el.files[0]);const note=dialogs.querySelector('#book-note-notice');if(note)note.textContent='✓ Photo préparée pour ce dossier de lecture.';}catch(err){bookCoverPending=null;notify(err.message);}return;}if(el.id==='note-photo'){if(!el.files?.[0])return;try{photoPending=await resizePhoto(el.files[0]);notify('Photographie préparée.');}catch(err){photoPending=null,bookCoverPending=null;notify(err.message);}}if(el.id==='import-file'){const f=el.files?.[0];if(!f)return;try{const data=importJSON(await f.text());if(!confirm('Importer remplacera ton Atlas actuel sur cet appareil. As-tu exporté ta sauvegarde ?'))return;closeModal();persist(data);notify('Sauvegarde importée.');navigate('atlas');}catch(err){notify(err.message);}}});
 dialogs.addEventListener('submit',async e=>{e.preventDefault();const form=e.target,fd=new FormData(form),val=(x)=>String(fd.get(x)||'');try{if(form.id==='edit-cap-form'){const s=updateCap(state,val('cap'));closeModal();persist(s);notify('Ta boussole a évolué.');}else if(form.id==='mission-form'){let {state:s,mission}=createMission(state,{title:val('title'),territory:val('territory'),mode:val('mode'),why:val('why'),steps:val('steps').split(/\n+/)});closeModal();persist(s);navigate(`mission/${mission.id}`);notify('Un nouveau chemin a été tracé.');}else if(form.id==='step-form'){let s=addStep(state,form.dataset.mission,val('title'));closeModal();persist(s);notify('Passage ajouté sur ta carte.');}else if(form.id==='action-form'){let s=addAction(state,{title:val('title'),horizon:val('horizon'),missionId:val('missionId')||null});closeModal();persist(s);notify('Ton engagement est prêt.');}else if(form.id==='note-form'){let s=addNote(state,{text:val('text'),emotion:val('emotion'),missionId:val('missionId'),image:photoPending});closeModal();persist(s);navigate('carnet');notify('Souvenir conservé dans ton Carnet.');}else if(form.id==='book-form'){let s=addBook(state,val('title'),val('author'),val('status'),bookCoverPending,val('pagesTotal'),val('currentPage'));closeModal();persist(s);bookCoverPending=null;navigate('bibliotheque');notify('Le livre rejoint ta bibliothèque.');}else if(form.id==='book-progress-form'){let s=updateBook(state,form.dataset.book,{pagesTotal:val('pagesTotal'),currentPage:val('currentPage'),status:val('status')});persist(s);state=s;openBook(form.dataset.book);notify('Progression du livre mise à jour.');}else if(form.id==='book-entry-form'){let s=addBookEntry(state,form.dataset.book,{text:val('text'),analysis:val('analysis'),favorite:fd.get('favorite')==='on',image:bookCoverPending||''});persist(s);bookCoverPending=null;state=s;openBook(form.dataset.book);notify('Note ajoutée dans le dossier du livre.');}else if(form.id==='checkin-form'){let s=addCheckin(state,{missionId:form.dataset.mission,feeling:val('feeling'),difficulty:val('difficulty'),nextAction:val('nextAction'),scheduledFor:val('scheduledFor')});closeModal();persist(s);navigate('mission/'+form.dataset.mission);notify('Bilan conservé dans cette Mission.');}else if(form.id==='essay-draft-form'){let s=saveEssay(state,{title:val('title'),category:val('category'),text:val('text'),bookTitle:val('bookTitle')});closeModal();persist(s);navigate('bibliotheque');notify('Réflexion sauvegardée en privé.');}else if(form.id==='recover-form'){let s=markRecovery(state,form.dataset.mission,val('reason'),val('plan'));closeModal();persist(s);navigate('mission/'+form.dataset.mission);notify('Ta reprise figure désormais dans la mémoire de cette Mission.');}else if(form.id==='auth-form'){if(!cloudStore)throw Error('Cloud non activé');const email=val('email'),password=val('password');if(val('intent')==='signup'){const res=await cloudStore.signUp(email,password);if(res==='check_email'){closeModal();notify('Vérifie ton e-mail pour confirmer le compte. Ton Atlas reste sur cet appareil.');return;}}else await cloudStore.signIn(email,password);closeModal();await afterAuth();}}catch(err){console.error('ATLAS form',err);notify(err.message||'Une erreur est survenue.');}});
+
+dialogs.addEventListener('submit',async e=>{
+  const form=e.target;
+  if(!['password-reset-request-form','password-recovery-form'].includes(form.id))return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  const submit=form.querySelector('[type="submit"]');
+  if(submit?.disabled)return;
+  if(submit)submit.disabled=true;
+  try{
+    if(!cloud)throw Error('Connexion au compte indisponible.');
+    if(form.id==='password-reset-request-form'){
+      const email=String(form.elements.email.value||'').trim();
+      const redirectTo=location.origin+location.pathname;
+      const {error}=await cloud.auth.resetPasswordForEmail(email,{redirectTo});
+      if(error)throw error;
+      closeModal();
+      notify('Si un compte existe pour cette adresse, un e-mail de réinitialisation a été envoyé.');
+    }else{
+      const password=String(form.elements.password.value||'');
+      const confirmation=String(form.elements.confirmPassword.value||'');
+      if(password.length<10)throw Error('Choisis au moins 10 caractères.');
+      if(password!==confirmation)throw Error('Les deux mots de passe doivent être identiques.');
+      const {data,error:identityError}=await cloud.auth.getUser();
+      if(identityError||!data?.user)throw Error('Lien expiré. Demande un nouveau lien depuis la connexion.');
+      const {error}=await cloud.auth.updateUser({password});
+      if(error)throw error;
+      window.ATLAS_PASSWORD_RECOVERY_PENDING=false;
+      closeModal();
+      notify('Ton nouveau mot de passe a été enregistré.');
+    }
+  }catch(err){
+    console.warn('ATLAS récupération du mot de passe',err);
+    notify(err.message||'La modification a échoué. Réessaie.');
+  }finally{if(form.isConnected&&submit)submit.disabled=false;}
+},true);
+
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&dialogs.querySelector('#overlay'))closeModal();});
 // Fin de lecture : une sélection « Terminé » remplit immédiatement les pages.
 dialogs.addEventListener('change',e=>{
@@ -1791,7 +1849,8 @@ root.addEventListener('change',e=>{
 document.addEventListener('click',async e=>{
  const btn=e.target.closest('[data-v12]');if(!btn)return;e.preventDefault();
  const action=btn.dataset.v12;
- if(!isAdmin||!session?.id){notify('Atelier réservé au compte fondateur.');return;}
+ // Les notes et réflexions privées appartiennent au compte courant, pas à la fondatrice.
+  if(!['edit-note','edit-essay'].includes(action)&&(!isAdmin||!session?.id)){notify('Atelier réservé au compte fondateur.');return;}
  if(action==='recover-legacy-draft'){
   try{
    const old=JSON.parse(localStorage.getItem(DRAFT_KEY)||'null');
@@ -1930,8 +1989,12 @@ function initCloud(){
     }
     cloud.auth.onAuthStateChange((event)=>{
       if(event==='TOKEN_REFRESHED')return;
-      // SDK Auth : ne jamais appeler getUser dans le callback synchrone.
-      setTimeout(synchronizeIdentity,0);
+      if(event==='PASSWORD_RECOVERY')window.ATLAS_PASSWORD_RECOVERY_PENDING=true;
+      // Attendre la fin de synchronisation avant de proposer un nouveau mot de passe.
+      setTimeout(async()=>{
+        await synchronizeIdentity();
+        if(window.ATLAS_PASSWORD_RECOVERY_PENDING&&session?.id)passwordRecoveryForm();
+      },0);
     });
     setTimeout(synchronizeIdentity,0);
   }catch(err){console.warn('ATLAS Supabase startup',err)}
