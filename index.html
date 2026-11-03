@@ -1758,7 +1758,7 @@ function publicCuratedSection(s,kind){
  }).join('')+'</div></section>';
 }
 function showPublic(){
- const stagingSample = !isPreview && !sitePublished && window.ATLAS_STAGING === true;
+ const stagingSample = !requiresPublishedPage && !isPreview && !sitePublished && window.ATLAS_STAGING === true;
  const s=isPreview?siteDraft:(sitePublished || (stagingSample ? copy(defaultSite) : null));
  const headerHTML=header('public');
  if(!s){root.innerHTML=headerHTML+`<main id="main" class="page"><section class="wrap page-head"><div class="eyebrow">L'Atlas de Cloe</div><h1>Un chapitre en préparation.</h1><p class="lead">Cette page n'est pas publiée pour le moment.</p><div class="actions">${link('start','Commencer mon propre Atlas →','btn')}</div></section></main>`+footer();return;}
@@ -1938,7 +1938,7 @@ document.addEventListener('click',async e=>{
   const list=siteDraft[kind];
   if(action==='remove-public-item'){siteDraft[kind]=list.filter(item=>item.id!==btn.dataset.id);showEditor();return;}
   if(list.length>=curatedLimits[kind])return notify('Limite de contenus atteinte pour cette rubrique.');
-  let item={id:uuid(),title:'',text:'',date:new Date().toISOString().slice(0,10)};
+  let item={id:uuid(),title:{updates:'Nouvelle avancée',notes:'Nouvelle note',books:'Nouveau livre',carnets:'Nouveau carnet'}[kind],text:'',date:new Date().toISOString().slice(0,10)};
   if(action==='import-private'){
    const src=kind==='updates'?state.missions:kind==='notes'?state.notes:kind==='books'?state.bookmarks:state.essays;
    const selected=(src||[]).find(x=>String(x.id)===btn.dataset.source);
