@@ -84,4 +84,10 @@ for(const id of ids){
 assert.equal(ensures,3,'Les raccourcis réactivent les chapitres publics');
 assert(journey.includes("window.addEventListener('hashchange'"),'La navigation doit être suivie');
 assert(journey.includes("window.addEventListener('pageshow'"),'Le retour navigateur doit être suivi');
+// Les anciens identifiants V14 cassaient les liens internes au retour sur l'accueil.
+const source=fs.readFileSync('index.html','utf8');
+assert(!source.includes("c.id='v14-missions'"),'Ne jamais renommer la section Mes Missions');
+assert(!source.includes("c.id='v14-carnets'"),'Ne jamais renommer la section Mes réflexions');
+assert(source.includes("if(label.includes('missions') && !c.id)c.id='public-missions'"),'Ancre de Mission stable requise');
+assert(source.includes("if(label.includes('carnets') && !c.id)c.id='public-carnets'"),'Ancre de réflexion stable requise');
 console.log('Navigation Atlas public : retours, boutons, missions et réflexions réactivés OK.');
