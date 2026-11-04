@@ -214,6 +214,55 @@
       (published?'Ce livre est visible avec sa couverture, ton avis et ta progression.':'Ce livre est privé pour le moment.')+'</p>';
     form.insertAdjacentElement('afterend',panel);
   }
+  function recoverableBooks() {
+    var publicCopy=api.getContent && api.getContent();
+    var draft=api.getDraft && api.getDraft();
+    var list=(publicCopy&&publicCopy.publicBooks)|| (draft&&draft.publicBooks)||[];
+    var person=privateState();
+    if (!Array.isArray(list)||!person)return [];
+    var own=(person.bookmarks||[]).map(function(b){
+      return clean(b.title,180).toLowerCase()+'|'+clean(b.author,120).toLowerCase();
+    });
+    return list.filter(function(b){
+      return b&&b.title && own.indexOf(clean(b.title,180).toLowerCase()+'|'+clean(b.author,120).toLowerCase())===-1;
+    });
+  }
+  function personalRecovery() {
+    if(!founder() || typeof route!=='function'||route()!=='bibliotheque')return;
+    var grid=document.querySelector('.reading-grid');
+    if(!grid||document.getElementById('atlas-v31-recover'))return;
+    var missing=recoverableBooks();
+    if(!missing.length)return;
+    var section=document.createElement('section');
+    section.id='atlas-v31-recover';
+    section.className='folio';
+    section.innerHTML='<div class="eyebrow">✦ Retrouver mes livres</div><h3>Mes livres partagés restent aussi les miens.</h3>'+
+      '<p>Ces ouvrages figurent dans mon Atelier public, mais pas encore dans ma bibliothèque personnelle sur ce compte. Je peux en recréer une copie sans les retirer du public.</p>'+
+      missing.map(function(b,i){
+        return '<div class="atlas-v31-recover-row"><span><strong>'+esc(b.title)+'</strong> · '+esc(b.author||'')+'</span>'+
+        '<button type="button" class="btn outline" data-atlas-recover-book="'+esc(b.id||String(i))+'">Récupérer dans ma bibliothèque</button></div>';
+      }).join('')+
+      '<p class="muted text-sm">Seuls le titre, l’auteur et l’avis public sont récupérables. La progression et les anciennes notes absentes de la sauvegarde personnelle ne peuvent pas être inventées.</p>';
+    grid.insertAdjacentElement('afterend',section);
+  }
+  function recoverBook(id) {
+    if(!founder() || typeof persist!=='function')return;
+    var missing=recoverableBooks();
+    var entry=missing.find(function(b,i){return (b.id||String(i))===id;});
+    if(!entry)return;
+    if(!window.confirm('Recréer « '+entry.title+' » dans ta bibliothèque personnelle ? Les données publiques resteront inchangées.'))return;
+    var person=privateState(),next=structuredClone(person);
+    next.bookmarks=Array.isArray(next.bookmarks)?next.bookmarks:[];
+    var idValue=window.crypto&&window.crypto.randomUUID?window.crypto.randomUUID():
+      'a'+Date.now().toString(36)+Math.random().toString(36).slice(2);
+    next.bookmarks.unshift({
+      id:idValue,title:clean(entry.title,180),author:clean(entry.author,100),
+      status:'to-read',cover:null,note:clean(entry.note,2800),
+      pagesTotal:0,currentPage:0,entries:[],addedAt:new Date().toISOString()
+    });
+    persist(next);
+    if(typeof notify==='function')notify('Livre retrouvé dans ta bibliothèque personnelle. Tu peux reprendre sa progression.');
+  }
   function personalEditor() {
     var target=document.getElementById('atlas-journey-editor');
     if (!founder()||!target||target.querySelector('.atlas-v31-links'))return;
@@ -238,7 +287,7 @@
       '<button type="button" data-atlas-jump="public-carnets">Mes réflexions <span>↗</span></button></div>';
     first.insertAdjacentElement('afterend',guide);
   }
-  function enhancePersonal() {personalMission();personalBook();personalEditor();}
+  function enhancePersonal() {personalMission();personalBook();personalRecovery();personalEditor();}
   function enhance() { drawBooks();drawGuide();enhancePersonal(); }
   function printFeedback(id,txt) {var el=document.getElementById(id);if(el)el.textContent=txt;}
   function refreshMissionPanel(id) {
@@ -346,6 +395,8 @@
     if(jump){e.preventDefault();var target=document.getElementById(jump.dataset.atlasJump);
       if(!target && jump.dataset.atlasJump==='atlas-v31-library')target=document.getElementById('public-lectures');
       if(target)target.scrollIntoView({behavior:'smooth',block:'start'});return;}
+    var recovery=e.target.closest('[data-atlas-recover-book]');
+    if(recovery){e.preventDefault();recoverBook(recovery.dataset.atlasRecoverBook);return;}
     var m=e.target.closest('[data-atlas-share-mission]');
     if(m){e.preventDefault();m.disabled=true;void toggleMission(m.dataset.atlasShareMission).finally(function(){m.disabled=false;});return;}
     var save=e.target.closest('[data-atlas-save-opinion]');
@@ -377,7 +428,7 @@
     '#atlas-v31-book-overlay{position:fixed;inset:0;z-index:6000;display:grid;place-items:center;padding:16px}.atlas-v31-shade{position:absolute;inset:0;background:#19281fc9}.atlas-v31-book-dialog{position:relative;width:min(850px,100%);max-height:90vh;overflow:auto;border-radius:22px;padding:clamp(24px,5vw,48px);background:#fff7e9;box-shadow:0 20px 60px #0004;color:#2b4337}.atlas-v31-close{position:absolute;right:18px;top:12px;font:inherit;font-size:2rem;border:0;background:none;cursor:pointer}',
     '.atlas-v31-book-detail{display:grid;grid-template-columns:210px 1fr;gap:32px;align-items:start}.atlas-v31-book-detail>img,.atlas-v31-book-detail>.atlas-v31-book-placeholder{width:210px;max-height:320px;object-fit:contain;border-radius:13px;box-shadow:8px 10px 23px #0002}.atlas-v31-book-detail>.atlas-v31-book-placeholder{height:300px}.atlas-v31-book-detail h2{font-family:var(--serif);font-size:clamp(2.2rem,5vw,3.7rem);margin:8px 0 4px;line-height:1.05}.atlas-v31-book-detail h3{font-family:var(--serif);font-size:1.8rem;margin:26px 0 10px}.atlas-v31-author{font-style:italic;color:#756a59}.atlas-v31-opinion{line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere}',
     '.atlas-v31-share-mission{margin:22px 0;padding:20px;border:1px solid #d3bea0;border-radius:16px;background:#f8f0df}.atlas-v31-share-mission .btn{margin:8px 12px 8px 0}.atlas-v31-share-mission select{display:block;max-width:100%;padding:10px;background:#fff;border:1px solid #b9a991;border-radius:8px;margin:10px 0}.atlas-v31-share-status{font-size:.88rem;color:#496b4f}',
-    '#atlas-v31-book-publisher{margin:24px 0 0;padding:20px;border:1px solid #d1bea3;border-radius:16px;background:#f9f1e5}#atlas-v31-book-publisher textarea{width:100%;min-height:110px;margin:10px 0 14px;padding:12px;border:1px solid #bcae95;border-radius:10px;font:inherit;background:#fff}#atlas-v31-book-publisher .actions{display:flex;flex-wrap:wrap;gap:10px}.atlas-v31-links{padding-top:22px;border-top:1px solid #d2c7b7;margin-top:22px}',
+    '#atlas-v31-book-publisher{margin:24px 0 0;padding:20px;border:1px solid #d1bea3;border-radius:16px;background:#f9f1e5}#atlas-v31-book-publisher textarea{width:100%;min-height:110px;margin:10px 0 14px;padding:12px;border:1px solid #bcae95;border-radius:10px;font:inherit;background:#fff}#atlas-v31-book-publisher .actions{display:flex;flex-wrap:wrap;gap:10px}.atlas-v31-recover-row{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;padding:14px 0;border-top:1px solid #d7c9b4}#atlas-v31-recover{margin:25px 0;padding:25px}.atlas-v31-links{padding-top:22px;border-top:1px solid #d2c7b7;margin-top:22px}',
     '@keyframes atlas-v31-marquee{to{transform:translateX(calc(-50% - 11px))}}',
     '@media(max-width:650px){#atlas-v31-public-guide{padding:20px}.atlas-v31-slider-legend{display:none}.atlas-v31-book-detail{grid-template-columns:1fr}.atlas-v31-book-detail>img,.atlas-v31-book-detail>.atlas-v31-book-placeholder{width:150px;height:215px}.atlas-v31-book{width:165px;flex-basis:165px}.atlas-v31-book-cover{height:180px}.atlas-v31-guide-actions{gap:9px}.atlas-v31-guide-actions button{padding:10px 13px}}',
     '@media(prefers-reduced-motion:reduce){.atlas-v31-book-track.is-moving{animation:none}.atlas-v31-guide-actions button,.atlas-v31-book{transition:none}}'
