@@ -83,6 +83,26 @@
     var visible = stories.filter(function (m) { return m.is_published || (host.preview() && host.isAdmin()); });
     var current = visible.filter(function (m) { return m.status !== 'terminee'; });
     var past = visible.filter(function (m) { return m.status === 'terminee'; });
+    // Une mission vedette issue uniquement des missions expressément publiées.
+    // Les étapes visibles ici sont déjà dans les données publiques de la mission.
+    var eligible = current.filter(function (m) {
+      return m.is_published && stepsOf(m).length > 0;
+    });
+    var oldFeature = document.getElementById('atlas-featured-public-mission');
+    if (oldFeature) oldFeature.remove();
+    if (eligible.length) {
+      var monday = new Date();
+      monday.setHours(12, 0, 0, 0);
+      monday.setDate(monday.getDate() - (monday.getDay() + 6) % 7);
+      var cycle = Math.floor(Date.UTC(monday.getFullYear(), monday.getMonth(), monday.getDate()) / 604800000);
+      var featured = eligible[cycle % eligible.length];
+      gallery.insertAdjacentHTML('beforebegin',
+        '<aside class="atlas-featured-public-mission" id="atlas-featured-public-mission" aria-label="Mission publique de la semaine">' +
+        '<span class="eyebrow">✦ À DÉCOUVRIR CETTE SEMAINE · MISSION PUBLIQUE</span>' +
+        '<h3>' + esc(featured.title) + '</h3><p>' + esc(featured.description) + '</p>' +
+        '<div class="atlas-featured-actions"><button type="button" class="btn outline" data-atlas-open-story="' + esc(featured.id) + '">Découvrir les étapes déjà partagées →</button>' +
+        '<a class="btn" href="#/semaine">Imaginer ma propre Mission →</a></div></aside>');
+    }
     gallery.dataset.journey = '1';
     gallery.innerHTML = current.length ? current.map(storyCard).join('') :
       '<p class="muted">Un nouveau chapitre se prépare. Les missions accomplies restent dans les archives.</p>';
@@ -396,6 +416,7 @@
   css.textContent =
     '.atlas-journey-track{height:8px;overflow:hidden;border-radius:12px;background:#ded5c4;margin:19px 0 9px}.atlas-journey-track>span{display:block;height:100%;background:#688569;border-radius:inherit;transition:width .4s}' +
     '.atlas-journey-card{overflow:hidden}.atlas-journey-card figure{margin:0}.atlas-journey-content{padding:20px}.atlas-journey-content h3{margin:12px 0}.atlas-journey-content p{line-height:1.6}.atlas-journey-more{margin-top:12px}' +
+    '.atlas-featured-public-mission{background:#f2eadc;border:1px solid #c9b89d;padding:clamp(24px,4vw,44px);margin:20px 0 30px;border-radius:23px}.atlas-featured-public-mission h3{font-family:var(--serif);font-size:clamp(2rem,4vw,3rem);margin:10px 0}.atlas-featured-public-mission p{max-width:700px;line-height:1.7}.atlas-featured-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}@media(max-width:650px){.atlas-featured-actions{flex-direction:column}.atlas-featured-actions .btn{width:100%}}' +
     '.atlas-journey-archive{margin:44px 0 25px;padding-top:28px;border-top:1px solid #cfc2ab}.atlas-journey-archive h3{font-family:var(--serif);font-size:2.4rem}.atlas-journey-archive-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:20px}.atlas-journey-image-fallback{height:170px;background:#e4dbc9;display:grid;place-items:center;font-size:3rem}' +
     '.atlas-journey-article-card{cursor:default}.atlas-journey-article-card>p{line-height:1.65}.atlas-journey-article-card .btn{margin-top:15px}' +
     '#atlas-feature-overlay{position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;padding:18px}.atlas-feature-shade{position:absolute;inset:0;background:rgba(22,34,27,.7)}' +
