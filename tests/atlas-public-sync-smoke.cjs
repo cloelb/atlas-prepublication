@@ -56,7 +56,7 @@ assert.equal(published.steps.length,1,'Les étapes personnelles choisies doivent
 
 // Régression : une Mission privée restaurée dans Supabase doit revenir automatiquement
 // si les autres données du compte et les validations locales sont identiques.
-const restoreStart=html.indexOf('function canAdoptAddedCloudMissions(');
+const restoreStart=html.indexOf('function missingCloudMissions(');
 const restoreEnd=html.indexOf('async function reconcileCloud(remote){',restoreStart);
 assert(restoreStart>0&&restoreEnd>restoreStart,'La récupération sûre des Missions en ligne manque');
 const missingCloud=vm.runInNewContext(html.slice(restoreStart,restoreEnd)+'\nmissingCloudMissions;');
