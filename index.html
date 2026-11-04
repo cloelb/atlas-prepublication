@@ -1500,6 +1500,30 @@ function cloudStatus(){
   if(!cloudStore.hasRemote)return 'Compte connecté. Aucun Atlas enregistré en ligne pour le moment ; ton espace personnel est encore vierge.';
   return 'Compte connecté · dernière sauvegarde cloud confirmée (enregistrée sur ton compte).';
 }
+// Récupérer une Mission ajoutée en ligne après une restauration sans perdre les données locales.
+function canAdoptAddedCloudMissions(local,remote){
+ if(!local||!remote||!Array.isArray(local.missions)||!Array.isArray(remote.missions))return false;
+ const before=Date.parse(local.updatedAt),after=Date.parse(remote.updatedAt);
+ if(!Number.isFinite(before)||!Number.isFinite(after)||after<=before)return false;
+ const ids=new Set(local.missions.map(m=>m&&m.id).filter(Boolean));
+ if(!ids.size||ids.size!==local.missions.length)return false;
+ const additions=remote.missions.filter(m=>m&&m.id&&!ids.has(m.id));
+ if(!additions.length||remote.missions.length!==local.missions.length+additions.length)return false;
+ const existing=remote.missions.filter(m=>m&&ids.has(m.id));
+ // Les missions existantes, leurs validations, les notes et tous les autres contenus
+ // doivent correspondre. La date de synchronisation est seule ignorée.
+ const canonical=function(value){
+  if(Array.isArray(value))return value.map(canonical);
+  if(value&&typeof value==='object'){
+   return Object.keys(value).sort().reduce(function(out,key){out[key]=canonical(value[key]);return out;},{});
+  }
+  return value;
+ };
+ const {updatedAt:localDate,...localData}=local;
+ const {updatedAt:remoteDate,...remoteData}=remote;
+ remoteData.missions=existing;
+ return JSON.stringify(canonical(localData))===JSON.stringify(canonical(remoteData));
+}
 async function reconcileCloud(remote){
  if(!session||!cloudStore?.ready)return;
  if(!remote){
@@ -1516,6 +1540,13 @@ async function reconcileCloud(remote){
  }
  if(JSON.stringify(state)===JSON.stringify(remote)){
   cloudConflict=false;delete window.__atlas_remote_pending;return;
+ }
+ if(canAdoptAddedCloudMissions(state,remote)){
+  // Le serveur est identique à la copie de cet appareil, à l'exception de Missions
+  // supplémentaires restaurées : sa version peut être chargée sans perdre une saisie.
+  state=remote;saveLocal(state);cloudConflict=false;
+  delete window.__atlas_remote_pending;render();
+  notify('Tes Missions retrouvées en ligne ont été réintégrées à ton Atlas.');return;
  }
  cloudConflict=true;window.__atlas_remote_pending=remote;
  notify('Deux versions différentes existent. Ouvre Compte pour choisir celle à conserver.');

@@ -54,4 +54,27 @@ assert.equal(published.id,'corps','Réutiliser la Mission publique au lieu de cr
 assert.equal(published.territory,'Corps','Préserver le territoire éditorial Corps même si la Mission personnelle est mal classée');
 assert.equal(published.steps.length,1,'Les étapes personnelles choisies doivent accompagner la Mission publiée');
 
+// Régression : une Mission privée restaurée dans Supabase doit revenir automatiquement
+// si les autres données du compte et les validations locales sont identiques.
+const restoreStart=html.indexOf('function canAdoptAddedCloudMissions(');
+const restoreEnd=html.indexOf('async function reconcileCloud(remote){',restoreStart);
+assert(restoreStart>0&&restoreEnd>restoreStart,'La récupération sûre des Missions en ligne manque');
+const canAdopt=vm.runInNewContext(html.slice(restoreStart,restoreEnd)+'\ncanAdoptAddedCloudMissions;');
+const existingMission={id:'calis',title:'Apprendre la Callisthénie',steps:[{id:'a',title:'Hand stand',doneAt:null}]};
+const recoveredMission={id:'immo',title:'Premier Bien Immobilier',steps:[{id:'b',title:'Épargner',doneAt:null}]};
+const localAtlas={schema:5,cap:'Cap personnel',missions:[existingMission],actions:[],notes:[],
+  bookmarks:[],history:[],updatedAt:'2026-11-03T19:53:07.636Z'};
+const cloudAtlas={...localAtlas,updatedAt:'2026-11-04T13:49:35.757Z',
+  missions:[existingMission,recoveredMission]};
+assert.equal(canAdopt(localAtlas,cloudAtlas),true,
+  'Une Mission ajoutée en ligne sans autre différence doit réintégrer le compte');
+assert.equal(canAdopt({...localAtlas,notes:[{text:'Mon carnet local'}]},cloudAtlas),false,
+  'Ne jamais remplacer un carnet modifié localement');
+assert.equal(canAdopt({...localAtlas,missions:[{...existingMission,steps:[{...existingMission.steps[0],doneAt:'2026-11-04T14:00:00Z'}]}]},cloudAtlas),false,
+  'Ne jamais écraser une validation locale différente');
+assert.equal(canAdopt({...localAtlas,updatedAt:'2026-11-04T14:00:00Z'},cloudAtlas),false,
+  'Une copie locale plus récente doit rester protégée');
+assert.equal(canAdopt({...cloudAtlas},cloudAtlas),false,
+  'Ne jamais recréer une Mission déjà présente');
+
 console.log('ATLAS : bibliothèque publiée, progression synchronisée, missions sur parchemin et confidentialité vérifiés.');
