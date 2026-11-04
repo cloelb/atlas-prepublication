@@ -1716,7 +1716,7 @@ const sanitizeSite=s=>{
     for(const [key,max] of Object.entries(fields))item[key]=typeof x[key]==='string'?x[key].slice(0,max):'';
     return item;
   }):[];
-  out.publicNotes=cleanItems(s.publicNotes,12,{title:180,category:70,body:5000});
+  out.publicNotes=cleanItems(s.publicNotes,12,{title:180,category:70,body:20000});
   out.publicBooks=cleanItems(s.publicBooks,24,{title:180,author:120,note:900});
   if(Array.isArray(s.blocks)){
     const allowed=['missions','carnets','lectures','bookclub','story'], ids=[];
@@ -1767,7 +1767,7 @@ function editorFields(){
  return fields.map(([k,title,type])=>`<label class="v12-editor-field">${esc(title)}${type==='textarea'?`<textarea rows="${k==='storyText'?6:3}" name="${k}" data-v12-edit="${k}">${esc(siteDraft[k])}</textarea>`:`<input name="${k}" value="${esc(siteDraft[k])}" data-v12-edit="${k}" maxlength="1200">`}</label>`).join('');
 }
 function editorPublicItems(){
- const fields={publicNotes:[['title','Titre',180],['category','Rubrique',70],['body','Texte à partager',5000]],publicBooks:[['title','Titre du livre',180],['author','Auteur ou autrice',120],['note','Mon avis (facultatif)',900]]};
+ const fields={publicNotes:[['title','Titre',180],['category','Rubrique',70],['body','Texte à partager',20000]],publicBooks:[['title','Titre du livre',180],['author','Auteur ou autrice',120],['note','Mon avis (facultatif)',900]]};
  const sections=[['publicNotes','Mes pages à rendre publiques','Ajouter une page'],['publicBooks','Mes livres à partager','Ajouter un livre']];
  const essays=(state.essays||[]).slice(0,30).map(x=>`<button type='button' class='btn slim outline' data-atlas-public-import='essay' data-id='${esc(x.id)}'>+ ${esc((x.title||'Réflexion').slice(0,70))}</button>`).join('');
  const notes=(state.notes||[]).slice(0,30).map(x=>`<button type='button' class='btn slim outline' data-atlas-public-import='note' data-id='${esc(x.id)}'>+ ${esc((x.text||'Une page').slice(0,55))}</button>`).join('');
@@ -1986,7 +1986,7 @@ async function checkAdmin(user){
 root.addEventListener('input',e=>{
  const field=e.target.closest('[data-atlas-public-item]');if(!field||!session||!isAdmin)return;
  const key=field.dataset.atlasPublicItem,prop=field.dataset.field;
- const limits={publicNotes:{title:180,category:70,body:5000},publicBooks:{title:180,author:120,note:900}};
+ const limits={publicNotes:{title:180,category:70,body:20000},publicBooks:{title:180,author:120,note:900}};
  if(!limits[key]||!limits[key][prop])return;
  const item=(siteDraft[key]||[]).find(x=>x.id===field.dataset.id);if(!item)return;
  item[prop]=String(field.value||'').slice(0,limits[key][prop]);persistDraft();previewRender();
@@ -2061,7 +2061,7 @@ function initCloud(){
  const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0';script.async=true;script.onload=connected;script.onerror=()=>console.warn('Supabase JS inaccessible, mode local.');document.head.append(script);
 }
 initCloud();
-window.ATLAS_V12={getContent:()=>copy(sitePublished),getDraft:()=>copy(siteDraft),isAdmin:()=>isAdmin,preview:()=>isPreview};
+window.ATLAS_V12={getContent:()=>copy(sitePublished),getDraft:()=>copy(siteDraft),isAdmin:()=>isAdmin,preview:()=>isPreview,client:()=>cloud};
 })();
 
 </script><script>
@@ -2512,4 +2512,5 @@ if(route().startsWith('mission/'))render();
 </script>
 <style>.atlas-public-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:22px;margin:20px 0 34px}.atlas-public-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.75}.atlas-public-cta{border-top:1px solid #cfc2ab;margin:38px 0;padding:35px 0;text-align:center}.atlas-public-cta p{max-width:660px;margin:12px auto 24px}.atlas-public-editor{margin:20px 0;padding:20px;border:1px solid #ded3c3;border-radius:16px}.atlas-public-item{border-bottom:1px solid #ded3c3;margin:15px 0 22px;padding-bottom:18px}.atlas-public-import{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:18px}.atlas-public-remove{color:#963f3b!important}.atlas-public-editor textarea{width:100%;resize:vertical}</style>
 <script src="assets/atlas-missions-comptes.js"></script>
+<script src="assets/atlas-public-journey.js"></script>
 </body></html>
