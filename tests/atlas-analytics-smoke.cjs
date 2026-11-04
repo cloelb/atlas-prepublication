@@ -5,6 +5,7 @@ const js = fs.readFileSync('assets/atlas-analytics.js', 'utf8');
 const html = fs.readFileSync('index.html', 'utf8');
 assert(html.includes('<script src="assets/atlas-analytics.js"></script>'), 'La mesure facultative doit être chargée.');
 assert(html.includes('noindex,nofollow'), 'Le site reste en prépublication.');
+assert(fs.readFileSync('docs/retention-j7-instagram.md','utf8').includes('current_date - 14'), 'Une cohorte J+7 doit être complète avant mesure.');
 assert(!/service_role|sb_secret_/.test(js), 'Aucune clé secrète dans le navigateur.');
 
 const storage = new Map();
@@ -24,6 +25,7 @@ const client = {
     } };
   }
 };
+let activeRoute = 'semaine';
 const root = {
   innerHTML:'',
   querySelector(selector) {
@@ -41,7 +43,7 @@ const ctx = {
   state:{missions:[],checkins:[]},
   cloud:client,
   root,
-  route:()=> 'semaine',
+  route:()=> activeRoute,
   render() { root.innerHTML=''; },
   persist(next) { ctx.state=next; ctx.render(); },
   document:{head:{appendChild(){}},createElement(){return {textContent:''};}},
@@ -92,6 +94,12 @@ const before = requests.length;
 ctx.persist({missions:[mission],checkins:[]});
 assert.equal(requests.length,before,'Plus aucune mesure après désactivation.');
 assert.equal(localStorage.getItem('atlas-analytics-visitor-v1'),null,'Identifiant local retiré.');
+activeRoute = 'public';
+select('enable');
+assert.equal(requests.filter(x=>x.event_type==='visit').length,2,
+  'Une visite consentie compte aussi sur la page publique.');
+assert(!root.innerHTML.includes('id="atlas-analytics-consent"'),
+  'Le consentement ne réapparaît pas sur une autre page.');
 assert.equal(ctx.window.ATLAS_ANALYTICS.retentionWindow('2026-11-04','2026-11-11'),true);
 assert.equal(ctx.window.ATLAS_ANALYTICS.retentionWindow('2026-11-04','2026-11-17'),true);
 assert.equal(ctx.window.ATLAS_ANALYTICS.retentionWindow('2026-11-04','2026-11-18'),false);
