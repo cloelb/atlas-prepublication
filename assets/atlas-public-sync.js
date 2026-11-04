@@ -66,9 +66,11 @@
     return {
       id:old.id || storyId(m.id),linked_private_id:m.id,site_slug:'cloe',
       title:clean(m.title,160),
-      territory:mapTerritory[m.territory]||'Esprit',
+      // Une grande Mission déjà publiée garde son Territoire éditorial.
+      territory:['Autonomie','Corps','Esprit','Savoir-faire'].includes(old.territory) ?
+        old.territory : (mapTerritory[m.territory]||'Esprit'),
       description:clean(m.why,1800),
-      status:done?'terminee':'en_cours',
+      status:done?'terminee':old.status==='en_pause'?'en_pause':'en_cours',
       position:Number.isInteger(old.position)?old.position:0,
       steps:(m.steps||[]).slice(0,40).map(function(s) {
         var previous=oldSteps.find(function(p){return p.id===s.id;});
