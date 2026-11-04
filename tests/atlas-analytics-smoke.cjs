@@ -74,11 +74,11 @@ assert.equal(requests.filter(x=>x.event_type==='campaign_visit').length,1,'Visit
 assert.equal(requests.filter(x=>x.event_type==='visit').length,1,'Visite consentie.');
 assert(!requests.some(x=>x.title||x.body||x.email||x.notes),'Aucune donnée privée ne part.');
 const mission = {id:'mission-privee',title:'Une mission qui reste privée',
-  createdAt:'2026-11-04T12:00:00Z',steps:[{id:'step-privee',doneAt:null}]};
+  createdAt:new Date().toISOString(),steps:[{id:'step-privee',doneAt:null}]};
 ctx.persist({missions:[mission],checkins:[]});
 const first = requests.filter(x=>x.event_type==='first_mission');
 assert.equal(first.length,1,'La cohorte commence avec la première mission.');
-assert.equal(first[0].first_mission_on,'2026-11-04');
+assert.equal(first[0].first_mission_on,new Date().toISOString().slice(0,10));
 assert(!JSON.stringify(requests).includes(mission.title),'Aucun titre de mission ne doit sortir.');
 ctx.persist({missions:[{...mission,steps:[{id:'step-privee',doneAt:'2026-11-04T13:00:00Z'}]}],checkins:[]});
 assert.equal(requests.filter(x=>x.event_type==='step_completed').length,1);
