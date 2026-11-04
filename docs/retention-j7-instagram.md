@@ -1,16 +1,16 @@
 # ATLAS — mesure facultative J+7 (prépublication)
 
 ## Déploiement et protection
-La migration Supabase \`atlas_retention_j7_optin_events\` crée \`public.atlas_retention_events\` avec RLS active. Les rôles \`anon\` et \`authenticated\` ont **uniquement** le droit d'insérer les colonnes autorisées. Ils n'ont aucun droit SELECT, UPDATE ou DELETE. La clé secrète Supabase ne doit jamais être utilisée dans le site.
+La migration Supabase `atlas_retention_j7_optin_events` crée `public.atlas_retention_events` avec RLS active. Les rôles `anon` et `authenticated` ont **uniquement** le droit d'insérer les colonnes autorisées. Ils n'ont aucun droit SELECT, UPDATE ou DELETE. La clé secrète Supabase ne doit jamais être utilisée dans le site.
 
 Le navigateur n'envoie des événements qu'après le clic « Oui, participer » depuis « Ma semaine ». Il génère un identifiant UUID aléatoire local. En cas de refus, aucune donnée statistique n'est envoyée. La désactivation supprime l'identifiant local et interrompt les nouveaux envois ; elle ne supprime pas rétroactivement les événements déjà transmis.
 
 Événements autorisés :
-- \`campaign_visit\` : arrivée avec \`utm_source=instagram\`, uniquement après consentement.
-- \`visit\` : visite consentie, au plus une fois par jour UTC et navigateur.
-- \`first_mission\` : première Mission du navigateur consentant, avec **date seulement**, sans titre.
-- \`step_completed\` : une étape au moins accomplie ce jour-là, sans identifiant d'étape.
-- \`weekly_review\` : premier bilan hebdomadaire, sans réponse ni contenu.
+- `campaign_visit` : arrivée avec `utm_source=instagram`, uniquement après consentement.
+- `visit` : visite consentie, au plus une fois par jour UTC et navigateur.
+- `first_mission` : première Mission du navigateur consentant, avec **date seulement**, sans titre.
+- `step_completed` : une étape au moins accomplie ce jour-là, sans identifiant d'étape.
+- `weekly_review` : premier bilan hebdomadaire, sans réponse ni contenu.
 
 Les paramètres UTM bruts, pages de carnet, titres de Missions, emails et réponses aux bilans ne sont **jamais** collectés dans cette table.
 
@@ -22,7 +22,7 @@ Convention retenue : une personne consentante est considérée comme « revenue 
 
 À exécuter **dans l'éditeur SQL Supabase**, jamais dans le navigateur :
 
-\`\`\`sql
+```sql
 with premiere_mission as (
   select visitor_id, min(first_mission_on) as jour_initial
   from public.atlas_retention_events
@@ -49,16 +49,16 @@ left join retours r on r.visitor_id = p.visitor_id
 where p.jour_initial <= (current_date - 13)
 group by p.jour_initial
 order by p.jour_initial desc;
-\`\`\`
+```
 
 Une absence de ligne ne signifie pas un échec : il faut attendre qu'une cohorte ait terminé son observation.
 
 ## Instagram
 
 Lien à placer dans la biographie ou un Reel :
-\`https://cloelb.github.io/atlas-prepublication/?utm_source=instagram#/semaine\`
+`https://cloelb.github.io/atlas-prepublication/?utm_source=instagram#/semaine`
 
-Le fragment \`#/semaine\` pointe directement sur « Ma semaine ». Seule l'étiquette \`instagram\` peut être conservée dans la table de mesures **après consentement**. Aucune donnée n'est transmise à Instagram par la fonction statistique d'ATLAS.
+Le fragment `#/semaine` pointe directement sur « Ma semaine ». Seule l'étiquette `instagram` peut être conservée dans la table de mesures **après consentement**. Aucune donnée n'est transmise à Instagram par la fonction statistique d'ATLAS.
 
 La rubrique publique choisit chaque semaine une mission **déjà publiée explicitement**, dotée d'étapes qui figurent déjà dans la base publique. Les créations personnelles ne sont jamais publiées automatiquement.
 
@@ -73,7 +73,7 @@ La rubrique publique choisit chaque semaine une mission **déjà publiée explic
 7. Vérifier les liens en biographie et en Reel sur l'application Instagram, recueillir les retours de quelques testeurs.
 8. Dans Supabase Auth, activer « Leaked password protection » si l'offre le permet et revérifier Security Advisor.
 
-**Garde-fou :** conserver \`noindex,nofollow,noarchive\` tant que ces vérifications réelles ne sont pas terminées.
+**Garde-fou :** conserver `noindex,nofollow,noarchive` tant que ces vérifications réelles ne sont pas terminées.
 
 ### Effacement / durée de conservation
 La suppression de l'identifiant dans le navigateur arrête la mesure future mais ne supprime pas les anciens événements en base. Il faut définir une durée de conservation puis appliquer une purge côté serveur avant lancement public. Ne pas présenter ce consentement comme une suppression totale de l'historique.
