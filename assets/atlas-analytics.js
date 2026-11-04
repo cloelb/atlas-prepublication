@@ -111,15 +111,17 @@
       '<div class="atlas-analytics-actions">' + buttons + '</div></section>';
   }
   function enhance() {
-    if (typeof route !== 'function' || route() !== 'semaine') return;
-    var title = root.querySelector('.atlas-week-intro');
-    if (!title) return;
-    if (!root.querySelector('#atlas-analytics-consent')) title.insertAdjacentHTML('afterend', markup());
+    // Une visite consentie compte, même si la personne revient sur l'accueil
+    // ou l'Atlas public plutôt que directement dans « Ma semaine ».
     if (agreed()) {
       record('visit');
       if (source() === 'instagram') record('campaign_visit');
       recordFirstIfPresent(state);
     }
+    if (typeof route !== 'function' || route() !== 'semaine') return;
+    var title = root.querySelector('.atlas-week-intro');
+    if (!title) return;
+    if (!root.querySelector('#atlas-analytics-consent')) title.insertAdjacentHTML('afterend', markup());
   }
   function setChoice(enable) {
     if (!enable) {
