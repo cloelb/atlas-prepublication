@@ -207,7 +207,10 @@
       '<p class="muted text-sm">Ton livre reste dans ta bibliothèque personnelle, même si tu le publies. Tu choisis précisément ce que les autres voient.</p>'+
       '<label for="atlas-v31-personal-opinion">Mon avis sur ce livre</label>'+
       '<textarea id="atlas-v31-personal-opinion" maxlength="2800" rows="5" placeholder="Ce que j’ai aimé, appris, ressenti…">'+esc(b.note||'')+'</textarea>'+
-      '<div class="actions"><button type="button" class="btn outline" data-atlas-save-opinion="'+esc(b.id)+'">Conserver mon avis</button>'+
+      '<label for="atlas-v31-cover-photo">Ajouter ou changer la couverture (photo depuis mon appareil)</label>'+
+      '<input id="atlas-v31-cover-photo" type="file" accept="image/jpeg,image/png,image/webp">'+
+      '<div class="actions"><button type="button" class="btn outline" data-atlas-save-cover="'+esc(b.id)+'">Enregistrer la couverture</button>'+
+      '<button type="button" class="btn outline" data-atlas-save-opinion="'+esc(b.id)+'">Conserver mon avis</button>'+
       '<button type="button" class="btn" data-atlas-share-book="'+esc(b.id)+'">'+
       (published?'Retirer du public':'Partager ce livre publiquement')+'</button></div>'+
       '<p class="muted text-sm" id="atlas-v31-book-feedback" role="status">'+
@@ -323,6 +326,56 @@
     printFeedback('atlas-v31-book-feedback','Avis conservé dans ta bibliothèque personnelle.');
     return true;
   }
+  async function saveCover(id,button) {
+    if(!founder())return;
+    var input=document.getElementById('atlas-v31-cover-photo');
+    var file=input&&input.files&&input.files[0];
+    if(!file){printFeedback('atlas-v31-book-feedback','Choisis une image sur ton appareil.');return;}
+    if(!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>8000000){
+      printFeedback('atlas-v31-book-feedback','Choisis une image JPEG, PNG ou WebP de moins de 8 Mo.');return;
+    }
+    button.disabled=true;
+    try {
+      var image=await new Promise(function(resolve,reject){
+        var reader=new FileReader();
+        reader.onerror=function(){reject(Error('Impossible de lire cette image.'));};
+        reader.onload=function(){
+          var img=new Image();
+          img.onerror=function(){reject(Error('Format de photo non reconnu.'));};
+          img.onload=function(){
+            var ratio=Math.min(1,360/img.width,520/img.height);
+            var canvas=document.createElement('canvas');
+            canvas.width=Math.max(1,Math.round(img.width*ratio));
+            canvas.height=Math.max(1,Math.round(img.height*ratio));
+            var ctx=canvas.getContext('2d');
+            ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.drawImage(img,0,0,canvas.width,canvas.height);
+            var jpeg=canvas.toDataURL('image/jpeg',0.70);
+            if(jpeg.length>450000)jpeg=canvas.toDataURL('image/jpeg',0.45);
+            if(jpeg.length>450000)reject(Error('Cette image reste trop volumineuse. Choisis une photo plus légère.'));
+            else resolve(jpeg);
+          };
+          img.src=String(reader.result);
+        };
+        reader.readAsDataURL(file);
+      });
+      var person=privateState(),next=structuredClone(person);
+      var book=next.bookmarks.find(function(x){return x.id===id;});
+      if(!book)throw Error('Livre introuvable.');
+      book.cover=image;
+      if(typeof persist!=='function')throw Error('Sauvegarde indisponible.');
+      persist(next);
+      printFeedback('atlas-v31-book-feedback','Couverture enregistrée : elle reste dans ton Atlas personnel et accompagne ton livre partagé.');
+      // Actualiser l'illustration du dossier sans le fermer.
+      var cover=document.querySelector('#overlay .book-card .book-cover');
+      if(cover)cover.src=image;
+      else {
+        var glyph=document.querySelector('#overlay .book-card .book-glyph');
+        if(glyph){var photo=document.createElement('img');photo.className='book-cover';photo.alt='Couverture du livre';photo.src=image;glyph.replaceWith(photo);}
+      }
+    }catch(err){printFeedback('atlas-v31-book-feedback',err.message||'Couverture non enregistrée.');}
+    finally{button.disabled=false;}
+  }
   async function toggleBook(id) {
     if(!founder()||!db())return;
     if(!saveOpinion(id))return;
@@ -399,6 +452,8 @@
     if(recovery){e.preventDefault();recoverBook(recovery.dataset.atlasRecoverBook);return;}
     var m=e.target.closest('[data-atlas-share-mission]');
     if(m){e.preventDefault();m.disabled=true;void toggleMission(m.dataset.atlasShareMission).finally(function(){m.disabled=false;});return;}
+    var cover=e.target.closest('[data-atlas-save-cover]');
+    if(cover){e.preventDefault();void saveCover(cover.dataset.atlasSaveCover,cover);return;}
     var save=e.target.closest('[data-atlas-save-opinion]');
     if(save){e.preventDefault();saveOpinion(save.dataset.atlasSaveOpinion);return;}
     var b=e.target.closest('[data-atlas-share-book]');
@@ -428,7 +483,7 @@
     '#atlas-v31-book-overlay{position:fixed;inset:0;z-index:6000;display:grid;place-items:center;padding:16px}.atlas-v31-shade{position:absolute;inset:0;background:#19281fc9}.atlas-v31-book-dialog{position:relative;width:min(850px,100%);max-height:90vh;overflow:auto;border-radius:22px;padding:clamp(24px,5vw,48px);background:#fff7e9;box-shadow:0 20px 60px #0004;color:#2b4337}.atlas-v31-close{position:absolute;right:18px;top:12px;font:inherit;font-size:2rem;border:0;background:none;cursor:pointer}',
     '.atlas-v31-book-detail{display:grid;grid-template-columns:210px 1fr;gap:32px;align-items:start}.atlas-v31-book-detail>img,.atlas-v31-book-detail>.atlas-v31-book-placeholder{width:210px;max-height:320px;object-fit:contain;border-radius:13px;box-shadow:8px 10px 23px #0002}.atlas-v31-book-detail>.atlas-v31-book-placeholder{height:300px}.atlas-v31-book-detail h2{font-family:var(--serif);font-size:clamp(2.2rem,5vw,3.7rem);margin:8px 0 4px;line-height:1.05}.atlas-v31-book-detail h3{font-family:var(--serif);font-size:1.8rem;margin:26px 0 10px}.atlas-v31-author{font-style:italic;color:#756a59}.atlas-v31-opinion{line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere}',
     '.atlas-v31-share-mission{margin:22px 0;padding:20px;border:1px solid #d3bea0;border-radius:16px;background:#f8f0df}.atlas-v31-share-mission .btn{margin:8px 12px 8px 0}.atlas-v31-share-mission select{display:block;max-width:100%;padding:10px;background:#fff;border:1px solid #b9a991;border-radius:8px;margin:10px 0}.atlas-v31-share-status{font-size:.88rem;color:#496b4f}',
-    '#atlas-v31-book-publisher{margin:24px 0 0;padding:20px;border:1px solid #d1bea3;border-radius:16px;background:#f9f1e5}#atlas-v31-book-publisher textarea{width:100%;min-height:110px;margin:10px 0 14px;padding:12px;border:1px solid #bcae95;border-radius:10px;font:inherit;background:#fff}#atlas-v31-book-publisher .actions{display:flex;flex-wrap:wrap;gap:10px}.atlas-v31-recover-row{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;padding:14px 0;border-top:1px solid #d7c9b4}#atlas-v31-recover{margin:25px 0;padding:25px}.atlas-v31-links{padding-top:22px;border-top:1px solid #d2c7b7;margin-top:22px}',
+    '#atlas-v31-book-publisher{margin:24px 0 0;padding:20px;border:1px solid #d1bea3;border-radius:16px;background:#f9f1e5}#atlas-v31-book-publisher textarea{width:100%;min-height:110px;margin:10px 0 14px;padding:12px;border:1px solid #bcae95;border-radius:10px;font:inherit;background:#fff}#atlas-v31-book-publisher input[type=file]{display:block;margin:10px 0 15px;max-width:100%}#atlas-v31-book-publisher .actions{display:flex;flex-wrap:wrap;gap:10px}.atlas-v31-recover-row{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;padding:14px 0;border-top:1px solid #d7c9b4}#atlas-v31-recover{margin:25px 0;padding:25px}.atlas-v31-links{padding-top:22px;border-top:1px solid #d2c7b7;margin-top:22px}',
     '@keyframes atlas-v31-marquee{to{transform:translateX(calc(-50% - 11px))}}',
     '@media(max-width:650px){#atlas-v31-public-guide{padding:20px}.atlas-v31-slider-legend{display:none}.atlas-v31-book-detail{grid-template-columns:1fr}.atlas-v31-book-detail>img,.atlas-v31-book-detail>.atlas-v31-book-placeholder{width:150px;height:215px}.atlas-v31-book{width:165px;flex-basis:165px}.atlas-v31-book-cover{height:180px}.atlas-v31-guide-actions{gap:9px}.atlas-v31-guide-actions button{padding:10px 13px}}',
     '@media(prefers-reduced-motion:reduce){.atlas-v31-book-track.is-moving{animation:none}.atlas-v31-guide-actions button,.atlas-v31-book{transition:none}}'
