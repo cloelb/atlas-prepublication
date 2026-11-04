@@ -89,6 +89,7 @@
   function manualBooks() {
     var content=api.preview && api.preview() ? api.getDraft() : api.getContent();
     if (!content || !Array.isArray(content.publicBooks)) return [];
+    if (Array.isArray(content.blocks) && !content.blocks.some(function(b){return b.id==='lectures' && b.visible===true;})) return [];
     return content.publicBooks.filter(function(b){return b && b.title;}).map(function(b,i) {
       return {source_id:'manual-'+(b.id||i),title:b.title,author:b.author||'',
         opinion:b.note||'',pages_total:0,current_page:0,status:'',cover_data:null,is_published:true};
