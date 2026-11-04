@@ -38,6 +38,27 @@
     };
   }
   function storyId(id) { return 'personal-' + String(id||''); }
+  // Proposer une liaison sans jamais publier une Mission sans clic de la fondatrice.
+  function foldedMissionTitle(value) {
+    return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  }
+  function missionTopic(value) {
+    var title = foldedMissionTitle(value);
+    if (/calisth|callisth|calsith|calsit|calisten|callisten/.test(title)) return 'calisthenie';
+    if (/\bimmob\w*\b|\bimmo\b|\bpremier bien\b/.test(title)) return 'immobilier';
+    return '';
+  }
+  function suggestedMissionTarget(mission, rows) {
+    var available = (rows || []).filter(function(row) {
+      return !row.linked_private_id && row.id.indexOf('personal-') !== 0;
+    });
+    var title = foldedMissionTitle(mission.title);
+    var exact = available.find(function(row) { return foldedMissionTitle(row.title) === title; });
+    if (exact) return exact;
+    var topic = missionTopic(mission.title);
+    return topic ? available.find(function(row) { return missionTopic(row.title) === topic; }) || null : null;
+  }
   function storyFromPersonal(m, original) {
     var old = original || {};
     var oldSteps = Array.isArray(old.steps) ? old.steps : [];
@@ -45,9 +66,11 @@
     return {
       id:old.id || storyId(m.id),linked_private_id:m.id,site_slug:'cloe',
       title:clean(m.title,160),
-      territory:mapTerritory[m.territory]||'Esprit',
+      // Une grande Mission déjà publiée garde son Territoire éditorial.
+      territory:['Autonomie','Corps','Esprit','Savoir-faire'].includes(old.territory) ?
+        old.territory : (mapTerritory[m.territory]||'Esprit'),
       description:clean(m.why,1800),
-      status:done?'terminee':'en_cours',
+      status:done?'terminee':old.status==='en_pause'?'en_pause':'en_cours',
       position:Number.isInteger(old.position)?old.position:0,
       steps:(m.steps||[]).slice(0,40).map(function(s) {
         var previous=oldSteps.find(function(p){return p.id===s.id;});
@@ -176,17 +199,18 @@
     if(!m||!where||where.querySelector('.atlas-v31-share-mission'))return;
     var linked=linkedStories.find(function(x){return x.linked_private_id===m.id||x.id===storyId(m.id);});
     var published=linked&&linked.is_published;
+    var suggested=linked?null:suggestedMissionTarget(m,linkedStories);
     var options=linked?'':linkedStories.filter(function(x){
       return !x.linked_private_id && x.id.indexOf('personal-')!==0;
     }).map(function(x){
-      return '<option value="'+esc(x.id)+'">'+esc(x.title)+'</option>';
+      return '<option value="'+esc(x.id)+'"'+(suggested&&x.id===suggested.id?' selected':'')+'>'+esc(x.title)+'</option>';
     }).join('');
     var area=document.createElement('div');
     area.className='atlas-v31-share-mission';
     area.innerHTML='<p class="muted text-sm">Ton chemin reste personnel. Tu peux choisir de montrer son titre, ses étapes et sa progression sur l’Atlas de Cloé, sans publier ton Carnet privé.</p>'+
       (!linked && options?'<label for="atlas-v31-mission-target">Remplacer une grande Mission publique existante, ou en créer une nouvelle :</label>'+
       '<select id="atlas-v31-mission-target"><option value="new">Créer une nouvelle grande Mission publique</option>'+
-      options+'</select>':'')+
+      options+'</select>'+(suggested?'<p class="muted text-sm">Nous avons préselectionné la Mission publique correspondante pour éviter les doublons. Tu peux changer ce choix avant de partager.</p>':''):'')+
       '<button class="btn outline" type="button" data-atlas-share-mission="'+esc(m.id)+'">'+
       (published?'Retirer cette Mission du public':'✦ Partager cette Mission sur mon Atlas public')+'</button>'+
       '<span class="atlas-v31-share-status">'+(published?' ● Visible par tous':' ○ Privée')+'</span>';
@@ -301,11 +325,19 @@
     if(!founder()||!db())return;
     var person=privateState(),m=person&&(person.missions||[]).find(function(x){return x.id===id;});
     if(!m)return;
-    var prior=linkedStories.find(function(x){return x.linked_private_id===id||x.id===storyId(id);});
     var target=document.getElementById('atlas-v31-mission-target');
-    if(!prior && target && target.value!=='new'){
-      prior=linkedStories.find(function(x){return x.id===target.value&&!x.linked_private_id;});
+    var selected=target?target.value:null;
+    // Le panneau peut avoir été ouvert avant la première lecture du serveur.
+    // Relire ses liens évite de créer une deuxième Mission publique par erreur.
+    var response=await db().from('atlas_public_mission_stories').select('*').eq('site_slug','cloe').limit(80);
+    if(response.error){window.alert('Partage impossible : '+response.error.message);return;}
+    linkedStories=response.data||[];
+    var prior=linkedStories.find(function(x){return x.linked_private_id===id||x.id===storyId(id);});
+    if(!prior && selected && selected!=='new'){
+      prior=linkedStories.find(function(x){return x.id===selected&&!x.linked_private_id;});
+      if(!prior){window.alert('Cette Mission publique a changé. Rouvre le parcours avant de partager.');return;}
     }
+    if(!prior && !target) prior=suggestedMissionTarget(m,linkedStories);
     var data=prior && prior.is_published && prior.linked_private_id===id ?
       {is_published:false,updated_at:new Date().toISOString()} : storyFromPersonal(m,prior);
     var r=prior ? await db().from('atlas_public_mission_stories').update(data).eq('id',prior.id) :
