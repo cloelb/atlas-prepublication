@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - feature/edition-missions-comptes-2026-11-04
+      - feature/atlas-missions-vivantes-reflexions-2026-11-04
   pull_request:
     branches:
       - main
