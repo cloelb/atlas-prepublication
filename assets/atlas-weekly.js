@@ -103,8 +103,51 @@
       '<div><span class="eyebrow">Au fil des jours</span><h3>Agir & noter</h3><p>Un pas, une idée, une difficulté.</p></div>' +
       '<div><span class="eyebrow">Dimanche</span><h3>Faire le point</h3><p>Ce que j’ai accompli, appris, et la suite.</p></div></div>' +
       '<div class="atlas-week-footer-actions"><button class="btn outline" data-atlas-week="quick">+ Une nouvelle Mission</button>' +
-      '<a class="link" href="#/atlas">Explorer la carte de mon Atlas →</a></div></section></div>');
+      '<a class="link" href="#/atlas">Explorer la carte de mon Atlas →</a>' +
+      '<button type="button" class="link" data-atlas-week="calendar">Rappels facultatifs lundi et dimanche (calendrier) ↗</button></div></section></div>');
   }
+  // Le rappel reste un choix explicite : un fichier calendrier, aucun e-mail
+  // ni notification envoyée par ATLAS et aucune donnée personnelle partagée.
+  function calendarReminders() {
+    var now = new Date();
+    function next(day, hour) {
+      var d = new Date(now);
+      d.setHours(hour, 0, 0, 0);
+      d.setDate(d.getDate() + (day - d.getDay() + 7) % 7);
+      if (d <= now) d.setDate(d.getDate() + 7);
+      return d;
+    }
+    function stamp(d) {
+      return String(d.getFullYear()) + String(d.getMonth() + 1).padStart(2, '0') +
+        String(d.getDate()).padStart(2, '0') + 'T' +
+        String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0') + '00';
+    }
+    function event(day, at, title, description) {
+      var end = new Date(at.getTime() + 10 * 60000);
+      return ['BEGIN:VEVENT', 'UID:atlas-' + day + '-rituel@atlas-prepublication',
+        'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, ''),
+        'DTSTART:' + stamp(at), 'DTEND:' + stamp(end),
+        'RRULE:FREQ=WEEKLY;BYDAY=' + day, 'SUMMARY:' + title,
+        'DESCRIPTION:' + description, 'END:VEVENT'].join('\r\n');
+    }
+    var content = ['BEGIN:VCALENDAR', 'VERSION:2.0',
+      'PRODID:-//ATLAS//Rituels hebdomadaires//FR', 'CALSCALE:GREGORIAN',
+      event('MO', next(1, 9), 'ATLAS - Ma mission de la semaine',
+        'Choisir une mission et un petit pas. Ouvre ATLAS quand tu le souhaites.'),
+      event('SU', next(0, 18), 'ATLAS - Faire le point',
+        'Qu ai-je accompli et appris ? Quel sera mon prochain petit pas ?'),
+      'END:VCALENDAR'].join('\r\n') + '\r\n';
+    var url = URL.createObjectURL(new Blob([content], {type:'text/calendar;charset=utf-8'}));
+    var anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'atlas-rappels-facultatifs.ics';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1200);
+    notify('Ton calendrier peut importer les rappels si tu le souhaites.');
+  }
+
   function quickMission() {
     modal('Choisir ma prochaine Mission.','Un premier pas suffit',
       '<p>Commence avec un titre. Tu pourras préciser le Territoire, le Cap et tes autres étapes plus tard.</p>' +
@@ -195,6 +238,7 @@
     try {
       if (type === 'quick') quickMission();
       else if (type === 'account') settings(session ? 'signin' : 'signup');
+      else if (type === 'calendar') calendarReminders();
       else if (type === 'add-step') newStep(mid);
       else if (type === 'note') newNote(mid);
       else if (type === 'review') reviewModal(mid);
