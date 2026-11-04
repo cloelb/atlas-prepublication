@@ -87,13 +87,16 @@ assert.equal(ctx.state.notes[0].missionId,null,'Le carnet doit être conservé.'
 assert.equal(ctx.state.actions[0].missionId,null,'Les objectifs doivent être conservés.');
 assert.equal(ctx.state.checkins.length,0);
 
-ctx.session=null;path='atlas';ctx.render();
-assert(root.innerHTML.includes('Crée ton compte'),'La page privée doit demander un compte.');
+ctx.session=null;path='atlas';const beforeGuest=oldRenders;ctx.render();
+assert(oldRenders>beforeGuest,'Le visiteur doit pouvoir voir son Atlas local sans compte.');
 const create = {dataset:{action:'new-mission'}};
 listeners.root.click[0]({target:{closest(s){return s==='[data-action]'?create:null;}},preventDefault(){},stopImmediatePropagation(){}});
-assert.equal(newMissions,0,'Impossible de créer une mission sans compte.');
-assert(authPrompts>0,'La connexion doit être proposée.');
+assert.equal(newMissions,0,'Le gestionnaire ne doit pas intercepter une action locale ordinaire.');
+assert.equal(authPrompts,0,'Essayer une mission ne doit pas déclencher une inscription.');
+const signUp = {dataset:{atlasAccount:'signup'}};
+listeners.root.click[0]({target:{closest(s){return s==='[data-atlas-account]'?signUp:null;}},preventDefault(){},stopImmediatePropagation(){}});
+assert(authPrompts>0,'L’inscription volontaire doit rester disponible.');
 
 path='public';const previous=oldRenders;ctx.render();
 assert(oldRenders>previous,'Le site public doit rester visitable sans compte.');
-console.log('Tests Atlas : édition, ordre, insertion, suppression, isolation du carnet, connexion et accès public validés.');
+console.log('Tests Atlas : édition, ordre, insertion, suppression, isolation du carnet, essai local, inscription volontaire et accès public validés.');
