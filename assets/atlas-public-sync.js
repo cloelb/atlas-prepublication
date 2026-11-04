@@ -63,7 +63,7 @@
   }
   function siteVisible() {
     var publicRoot=document.querySelector('.public-v12');
-    return Boolean(publicRoot && document.querySelector('#public-missions'));
+    return Boolean(publicRoot);
   }
   async function readBooks() {
     var client=db();
@@ -127,6 +127,13 @@
       var anchor=document.querySelector('#public-carnets')||document.querySelector('#public-missions');
       if(anchor) anchor.insertAdjacentElement('afterend',target);
     }
+    // Évite une boucle infinie de rendu avec le MutationObserver.
+    var signature=JSON.stringify(rows.map(function(b){
+      return [b.source_id,b.title,b.author,b.status,b.pages_total,b.current_page,b.opinion,
+        b.cover_data&&b.cover_data.length,b.updated_at];
+    }));
+    if(target.dataset.atlasV31Signature===signature)return;
+    target.dataset.atlasV31Signature=signature;
     // Ne montrer qu'une seule version de la bibliothèque, en gardant
     // les ouvrages ajoutés manuellement dans l'Atelier.
     var loop=rows.length>2;
