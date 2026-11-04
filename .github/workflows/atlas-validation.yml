@@ -24,6 +24,11 @@ jobs:
           node --check assets/atlas-public-sync.js
           node tests/atlas-public-sync-smoke.cjs
           node tests/atlas-public-navigation-smoke.cjs
+      - name: Vérifier Ma semaine et les illustrations externalisées
+        run: |
+          node --check assets/atlas-weekly.js
+          node tests/atlas-weekly-smoke.cjs
+          node -e "const fs=require('fs');const html=fs.readFileSync('index.html','utf8');if(html.includes('data:image/webp;base64,'))throw Error('Illustrations WebP encore intégrées');if(!html.includes('assets/atlas-weekly.js'))throw Error('Ma semaine non chargée');if(!html.includes('noindex,nofollow'))throw Error('Prépublication non protégée');"
       - name: Tester l’Atlas public et la confidentialité
         run: node tests/atlas-publication-smoke.cjs
       - name: Verifier le chargement et les controles de securite
