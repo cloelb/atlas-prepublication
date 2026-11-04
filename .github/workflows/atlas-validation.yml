@@ -4,6 +4,7 @@ on:
     branches:
       - feature/edition-missions-comptes-2026-11-04
       - feature/atlas-missions-vivantes-reflexions-2026-11-04
+      - main
   pull_request:
     branches:
       - main
@@ -20,6 +21,8 @@ jobs:
         run: |
           node --check assets/atlas-public-journey.js
           node tests/atlas-public-journey-smoke.cjs
+          node --check assets/atlas-public-sync.js
+          node tests/atlas-public-sync-smoke.cjs
       - name: Tester l’Atlas public et la confidentialité
         run: node tests/atlas-publication-smoke.cjs
       - name: Verifier le chargement et les controles de securite
