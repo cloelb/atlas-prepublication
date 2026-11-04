@@ -9,10 +9,11 @@
   var guardedActions = new Set(['new-mission','new-mission-in-territory','new-step','edit-cap','new-action','new-note','new-book','essay-draft','checkin','recover','archive-action','complete-step','undo-step','confirm-action']);
 
   function needsAccount(path) {
-    return protectedPages.has(path) || path.indexOf('mission/') === 0 || path.indexOf('essai/') === 0;
+    // L'essai local ne nécessite plus d'inscription : aucun contenu n'est publié.
+    return false;
   }
   function requestAccount(nextAction, mode) {
-    if (session) return false;
+    if (session || !mode) return false;
     awaitingAction = nextAction || awaitingAction;
     if (!cloud) {
       notify('La connexion est momentanément indisponible. Réessaie avant de commencer ton Atlas.');
@@ -39,11 +40,13 @@
     var hero = root.querySelector('.hero');
     if (!hero || root.querySelector('.atlas-v29-invite')) return;
     hero.insertAdjacentHTML('afterend',
-      '<section class="atlas-v29-invite wrap" aria-label="Créer son Atlas personnel">' +
-      '<div><span class="eyebrow">Ton Atlas personnel</span><h2>Construis ton chemin. Garde tes traces.</h2>' +
-      '<p>Pour ne rien perdre, crée ton compte avant de définir ton Cap, lancer tes Missions ou écrire dans ton Carnet.</p></div>' +
-      '<div class="atlas-v29-invite-actions"><button class="btn" data-atlas-account="signup">' + (session ? 'Ouvrir mon Atlas →' : 'Créer mon Atlas →') + '</button>' +
-      '<button class="btn outline" data-atlas-account="signin">Me connecter</button></div></section>');
+      '<section class="atlas-v29-invite wrap" aria-label="Essayer son Atlas personnel">' +
+      '<div><span class="eyebrow">Ton Atlas personnel</span><h2>Choisis une mission. Fais un premier pas.</h2>' +
+      '<p>Commence sans compte, puis garde ton histoire et retrouve-la sur tes appareils en créant un compte.</p></div>' +
+      '<div class="atlas-v29-invite-actions"><button class="btn" data-atlas-week="quick">Essayer une Mission →</button>' +
+      '<a class="btn outline" href="#/semaine">Découvrir Ma semaine</a>' +
+      (session ? '' : '<button class="btn transparent" data-atlas-account="signin">Se connecter</button>') +
+      '</div></section>');
   }
 
   function missionById(mid) { return state.missions.find(function(m) { return m.id === mid; }); }
@@ -104,7 +107,7 @@
     var action = awaitingAction;
     awaitingAction = null;
     if (!action) return;
-    if (action.type === 'open-atlas') navigate('atlas');
+    if (action.type === 'open-atlas') navigate('semaine');
     else if (action.type === 'new-mission') newMission();
     else if (action.type === 'new-book') newBook();
     else if (action.type === 'new-note') newNote(action.mid || '');
@@ -178,7 +181,7 @@
     var account = e.target.closest('[data-atlas-account]');
     if (account) {
       e.preventDefault(); e.stopImmediatePropagation();
-      if (session) { navigate('atlas'); return; }
+      if (session) { navigate('semaine'); return; }
       awaitingAction = {type:'open-atlas'};
       requestAccount(awaitingAction, account.dataset.atlasAccount);
       return;
@@ -220,13 +223,8 @@
       } catch (err) { notify(err.message || 'Modification impossible.'); }
       return;
     }
-    var basic = e.target.closest('[data-action]');
-    if (!basic || session || !guardedActions.has(basic.dataset.action)) return;
-    e.preventDefault();e.stopImmediatePropagation();
-    var type = basic.dataset.action;
-    var resume = ['new-mission','new-book','new-note','edit-cap','new-action','essay-draft'].includes(type) ?
-      {type:type, mid:basic.dataset.mission, horizon:basic.dataset.horizon} : null;
-    requestAccount(resume);
+    // Les actions ordinaires des visiteurs utilisent la sauvegarde locale native.
+
   }, true);
 
   dialogs.addEventListener('click', function(e) {
@@ -236,19 +234,12 @@
     auth(account.dataset.atlasAccount);
   }, true);
 
-  root.addEventListener('submit', function(e) {
-    if (session || e.target.id !== 'cap-form') return;
-    e.preventDefault();e.stopImmediatePropagation();requestAccount({type:'open-atlas'});
-  }, true);
+
 
   dialogs.addEventListener('submit', function(e) {
     var form = e.target, id = form.id;
-    if (id.indexOf('atlas-v29-') !== 0) {
-      if (!session && ['mission-form','step-form','note-form','action-form','book-form','edit-cap-form','checkin-form','essay-draft-form','recover-form'].includes(id)) {
-        e.preventDefault();e.stopImmediatePropagation();requestAccount();
-      }
-      return;
-    }
+    if (id.indexOf('atlas-v29-') !== 0) return;
+
     e.preventDefault();e.stopImmediatePropagation();
     if (requestAccount()) return;
     try {
@@ -276,11 +267,8 @@
     } catch(err) { notify(err.message || 'Enregistrement impossible.'); }
   }, true);
 
-  var originalPersist = persist;
-  persist = function(nextState) {
-    if (!session) { requestAccount(); return false; }
-    return originalPersist(nextState);
-  };
+  // Ne pas remplacer persist() : il choisit la clé invitée ou la clé du compte
+  // et conserve la logique de synchronisation Supabase sans migration.
 
   var css = document.createElement('style');
   css.textContent =
