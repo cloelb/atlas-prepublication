@@ -29,6 +29,10 @@ jobs:
           node --check assets/atlas-weekly.js
           node tests/atlas-weekly-smoke.cjs
           node -e "const fs=require('fs');const html=fs.readFileSync('index.html','utf8');if(html.includes('data:image/webp;base64,'))throw Error('Illustrations WebP encore intégrées');if(!html.includes('assets/atlas-weekly.js'))throw Error('Ma semaine non chargée');if(!html.includes('noindex,nofollow'))throw Error('Prépublication non protégée');"
+      - name: Vérifier la fidélisation J+7, les campagnes Instagram et le consentement
+        run: |
+          node --check assets/atlas-analytics.js
+          node tests/atlas-analytics-smoke.cjs
       - name: Tester l’Atlas public et la confidentialité
         run: node tests/atlas-publication-smoke.cjs
       - name: Verifier le chargement et les controles de securite
