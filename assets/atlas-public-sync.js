@@ -294,12 +294,16 @@
         var id=original.id.slice('personal-'.length);
         var mission=(person.missions||[]).find(function(m){return m.id===id;});
         if(!mission)return; // Une suppression privée n'efface pas l'archive publique.
-        tasks.push(db().from('atlas_public_mission_stories').update(storyFromPersonal(mission,original)).eq('id',original.id));
+        var refreshed=storyFromPersonal(mission,original);
+        delete refreshed.is_published; // La synchronisation ne change jamais la décision de publier.
+        tasks.push(db().from('atlas_public_mission_stories').update(refreshed).eq('id',original.id).eq('is_published',true));
       });
       sharedBooks.filter(function(r){return r.is_published;}).forEach(function(original){
         var idx=(person.bookmarks||[]).findIndex(function(b){return b.id===original.source_id;});
         if(idx<0)return;
-        tasks.push(db().from('atlas_public_books').update(bookRow(person.bookmarks[idx],idx)).eq('source_id',original.source_id));
+        var refreshed=bookRow(person.bookmarks[idx],idx);
+        delete refreshed.is_published; // Une désactivation reste désactivée, même en cas de course réseau.
+        tasks.push(db().from('atlas_public_books').update(refreshed).eq('source_id',original.source_id).eq('is_published',true));
       });
       var writes=await Promise.all(tasks);
       var error=writes.find(function(w){return w.error;});
