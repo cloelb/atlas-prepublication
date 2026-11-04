@@ -59,7 +59,9 @@ assert.equal(published.steps.length,1,'Les étapes personnelles choisies doivent
 const restoreStart=html.indexOf('function canAdoptAddedCloudMissions(');
 const restoreEnd=html.indexOf('async function reconcileCloud(remote){',restoreStart);
 assert(restoreStart>0&&restoreEnd>restoreStart,'La récupération sûre des Missions en ligne manque');
+const missingCloud=vm.runInNewContext(html.slice(restoreStart,restoreEnd)+'\nmissingCloudMissions;');
 const canAdopt=vm.runInNewContext(html.slice(restoreStart,restoreEnd)+'\ncanAdoptAddedCloudMissions;');
+
 const existingMission={id:'calis',title:'Apprendre la Callisthénie',steps:[{id:'a',title:'Hand stand',doneAt:null}]};
 const recoveredMission={id:'immo',title:'Premier Bien Immobilier',steps:[{id:'b',title:'Épargner',doneAt:null}]};
 const localAtlas={schema:5,cap:'Cap personnel',missions:[existingMission],actions:[],notes:[],
@@ -72,9 +74,13 @@ assert.equal(canAdopt({...localAtlas,notes:[{text:'Mon carnet local'}]},cloudAtl
   'Ne jamais remplacer un carnet modifié localement');
 assert.equal(canAdopt({...localAtlas,missions:[{...existingMission,steps:[{...existingMission.steps[0],doneAt:'2026-11-04T14:00:00Z'}]}]},cloudAtlas),false,
   'Ne jamais écraser une validation locale différente');
-assert.equal(canAdopt({...localAtlas,updatedAt:'2026-11-04T14:00:00Z'},cloudAtlas),false,
-  'Une copie locale plus récente doit rester protégée');
+assert.equal(canAdopt({...localAtlas,updatedAt:'2026-11-04T14:00:00Z'},cloudAtlas),true,
+  'Une date locale plus récente ne doit pas cacher une Mission cloud si les contenus sont identiques');
 assert.equal(canAdopt({...cloudAtlas},cloudAtlas),false,
   'Ne jamais recréer une Mission déjà présente');
+assert.equal(missingCloud(localAtlas,cloudAtlas).length,1,
+  'La mission absente doit être détectée dans le cloud');
+assert.equal(missingCloud(cloudAtlas,cloudAtlas).length,0,
+  'Une mission déjà restaurée ne doit pas être dupliquée');
 
 console.log('ATLAS : bibliothèque publiée, progression synchronisée, missions sur parchemin et confidentialité vérifiés.');
