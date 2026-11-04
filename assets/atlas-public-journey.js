@@ -108,21 +108,43 @@
     });
   }
   function storyDetail(m) {
-    var ss = stepsOf(m);
-    return '<div class="eyebrow">' + esc(m.territory) + ' · ' + (m.status === 'terminee' ? 'Mission accomplie' : 'Mon chemin en cours') + '</div>' +
-      '<h2 id="atlas-journey-title">' + esc(m.title) + '</h2><p class="atlas-journey-prose">' + esc(m.description) + '</p>' +
-      '<div class="atlas-journey-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + percentage(m) + '"><span style="width:' + percentage(m) + '%"></span></div>' +
-      '<h3>Les étapes du chemin</h3>' +
-      (ss.length ? '<ol class="atlas-journey-timeline">' + ss.map(function (st, i) {
-        return '<li class="' + (st.doneAt ? 'done' : '') + '"><span class="atlas-journey-dot">' + (st.doneAt ? '✓' : i + 1) + '</span><div><strong>' + esc(st.title) +
-          '</strong><small>' + (st.doneAt ? 'Étape franchie ' + stamp(st.doneAt) : 'À venir') + '</small>' + (st.note ? '<p>' + esc(st.note) + '</p>' : '') + '</div></li>';
-      }).join('') + '</ol>' : '<p class="muted">Le parcours sera dessiné au fur et à mesure.</p>') +
-      '<h3>Souvenirs & découvertes</h3>' +
-      (memoriesOf(m).length ? memoriesOf(m).map(function (memory) {
-        var image = safeImage(memory.imageUrl);
-        return '<article class="atlas-journey-memory"><div class="eyebrow">' + esc(memory.date || '') + '</div><p>' + esc(memory.text || '') + '</p>' +
-          (image ? '<img src="' + esc(image) + '" alt="Souvenir de la mission" loading="lazy">' : '') + '</article>';
-      }).join('') : '<p class="muted">Les souvenirs se construiront au fil de cette aventure.</p>');
+    var ss=stepsOf(m), finished=m.status==='terminee', done=ss.filter(function(s){return s.doneAt;}).length;
+    var H=Math.max(360,ss.length*168+90);
+    var coords=ss.map(function(_,i){return [i%2===0?190:450,110+i*168];});
+    var path=coords.map(function(p,i){return i===0?'M '+p[0]+' '+p[1]:'Q 320 '+(p[1]-84)+' '+p[0]+' '+p[1];}).join(' ');
+    var doneCoords=coords.slice(0,done);
+    var passed=doneCoords.map(function(p,i){return i===0?'M '+p[0]+' '+p[1]:'Q 320 '+(p[1]-84)+' '+p[0]+' '+p[1];}).join(' ');
+    var head='<div class="atlas-parchment-top"><div class="eyebrow">'+esc(m.territory)+' · '+
+      (finished?'Chapitre accompli':'Mission en chemin')+'</div>'+
+      '<h2 id="atlas-journey-title">'+esc(m.title)+'</h2><p>'+esc(m.description)+'</p>'+
+      '<div class="atlas-parchment-badges"><span class="pill">'+done+' passage'+(done>1?'s':'')+' sur '+ss.length+'</span>'+
+      '<span class="pill">'+percentage(m)+' % du chemin</span></div></div>';
+    var map='<h3 class="atlas-parchment-heading">Le parchemin de cette Mission</h3>'+
+      (ss.length?'<div class="atlas-parchment-map" style="height:'+H+'px">'+
+      '<div class="atlas-parchment-start">✦ Le commencement</div>'+
+      '<svg class="atlas-parchment-route" viewBox="0 0 640 '+H+'" preserveAspectRatio="none" aria-hidden="true">'+
+      '<path class="atlas-parchment-base" d="'+esc(path)+'"/>'+
+      (passed?'<path class="atlas-parchment-passed" d="'+esc(passed)+'"/>':'')+'</svg>'+
+      ss.map(function(st,i){return '<article class="atlas-parchment-stop '+(st.doneAt?'done':'')+
+        '" style="top:'+(coords[i][1]-28)+'px;left:'+(coords[i][0]/640*100)+'%">'+
+        '<span class="atlas-parchment-seal">'+(st.doneAt?'✦':'✧')+'</span>'+
+        '<strong>'+(i+1)+'. '+esc(st.title)+'</strong>'+
+        '<small>'+(st.doneAt?'Passage franchi le '+stamp(st.doneAt):'Un passage à venir')+'</small>'+
+        (st.note?'<p>'+esc(st.note)+'</p>':'')+'</article>';}).join('')+
+      '<div class="atlas-parchment-end">'+(finished?'✦ Mission accomplie':'La suite reste à écrire…')+'</div></div>':
+      '<p class="muted">Les premières étapes de cette aventure arrivent bientôt.</p>');
+    var memories='<section class="atlas-parchment-memories"><div class="eyebrow">Garder une trace</div>'+
+      '<h3>Souvenirs & découvertes</h3>'+
+      (memoriesOf(m).length?memoriesOf(m).map(function(memory){
+        var image=safeImage(memory.imageUrl);
+        return '<article class="atlas-journey-memory"><div class="eyebrow">'+esc(memory.date||'')+'</div>'+
+          '<p>'+esc(memory.text||'')+'</p>'+
+          (image?'<img src="'+esc(image)+'" alt="Souvenir du chemin" loading="lazy">':'')+'</article>';
+      }).join(''):'<p class="muted">Les souvenirs rejoindront le chemin au fil de l’aventure.</p>')+
+      '</section>';
+    return '<div class="atlas-parchment">'+head+map+memories+
+      (finished?'<div class="atlas-parchment-finale">✦ Ce chapitre est accompli. Il reste dans mes anciennes Missions.</div>':'')+
+      '</div>';
   }
   function overlay(html) {
     closeOverlay();
@@ -328,6 +350,11 @@
     if (close) { e.preventDefault(); closeOverlay(); return; }
     var story = e.target.closest('[data-atlas-open-story]');
     if (story) { e.preventDefault(); var m = getStory(story.dataset.atlasOpenStory); if (m) overlay(storyDetail(m)); return; }
+    var article = e.target.closest('.atlas-journey-article-card');
+    if (article && !e.target.closest('button')) {
+      var link = article.querySelector('[data-atlas-read]');
+      if (link) { e.preventDefault(); void articleDetail(link.dataset.atlasRead); return; }
+    }
     var read = e.target.closest('[data-atlas-read]');
     if (read) { e.preventDefault(); void articleDetail(read.dataset.atlasRead); return; }
     var edit = e.target.closest('[data-atlas-edit-story]');
@@ -350,6 +377,8 @@
     '.atlas-journey-article-card{cursor:default}.atlas-journey-article-card>p{line-height:1.65}.atlas-journey-article-card .btn{margin-top:15px}' +
     '#atlas-feature-overlay{position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;padding:18px}.atlas-feature-shade{position:absolute;inset:0;background:rgba(22,34,27,.7)}' +
     '.atlas-feature-dialog{position:relative;width:min(850px,100%);max-height:90vh;overflow:auto;background:#fcf6ea;color:#293d32;border-radius:22px;padding:clamp(25px,5vw,55px);box-shadow:0 20px 70px #0004}.atlas-feature-dialog h2{font-family:var(--serif);font-size:clamp(2rem,5vw,3.6rem);line-height:1.1;margin:10px 30px 25px 0}.atlas-feature-dialog h3{font-size:1.5rem;margin:27px 0 13px}.atlas-feature-close{position:absolute;right:18px;top:15px;border:0;background:transparent;font-size:2rem;cursor:pointer;color:inherit}' +
+    '.atlas-parchment{padding:16px;border:2px solid #d7c49d;border-radius:14px;background:radial-gradient(ellipse at 30% 0,#fffaec,#f3e7cd 85%);box-shadow:inset 0 0 45px #ad88581a}.atlas-parchment-top{text-align:center;max-width:680px;margin:0 auto;padding:25px 12px}.atlas-parchment-top h2{margin:12px 0 20px!important}.atlas-parchment-top p{white-space:pre-wrap;line-height:1.75}.atlas-parchment-badges{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:22px 0}.atlas-parchment-heading{text-align:center;font-family:var(--serif);margin:30px 0 16px!important}.atlas-parchment-map{position:relative;margin:10px auto;max-width:680px;background:linear-gradient(90deg,#ad8e5a08 1px,transparent 1px) 0 0/50px 50px}.atlas-parchment-route{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.atlas-parchment-base{fill:none;stroke:#c8ae83;stroke-width:6;stroke-linecap:round;stroke-dasharray:8 11}.atlas-parchment-passed{fill:none;stroke:#58795c;stroke-width:7;stroke-linecap:round}.atlas-parchment-stop{position:absolute;transform:translateX(-50%);width:39%;min-height:112px;border:1px solid #d2bd95;background:#fff9eaef;border-radius:15px;padding:12px 10px;text-align:center;box-shadow:0 8px 25px #59482216}.atlas-parchment-stop.done{border-color:#81957a}.atlas-parchment-seal{display:grid;place-items:center;width:32px;height:32px;margin:-27px auto 7px;background:#f5eddd;border:2px solid #b79e6f;border-radius:50%;font-size:21px;color:#6a775d}.atlas-parchment-stop.done .atlas-parchment-seal{background:#4e7154;color:white}.atlas-parchment-stop strong{display:block;font-size:.97rem;overflow-wrap:anywhere}.atlas-parchment-stop small{display:block;font-size:.77rem;margin-top:6px;color:#766b5b}.atlas-parchment-stop p{font-size:.83rem;line-height:1.4;white-space:pre-wrap}.atlas-parchment-start,.atlas-parchment-end{position:absolute;left:50%;transform:translateX(-50%);font-family:var(--serif);color:#7c705f;text-align:center;white-space:nowrap}.atlas-parchment-start{top:7px}.atlas-parchment-end{bottom:12px}.atlas-parchment-memories{padding:26px 14px;border-top:1px solid #d5c29d}.atlas-parchment-memories h3{font-family:var(--serif);font-size:2rem}.atlas-parchment-finale{text-align:center;padding:20px 8px;font-family:var(--serif);font-size:1.5rem;color:#4e7154}.atlas-journey-article-card{cursor:pointer;transition:transform .2s,box-shadow .2s}.atlas-journey-article-card:hover{transform:translateY(-4px);box-shadow:0 12px 28px #0002}' +
+    '@media(max-width:650px){.atlas-parchment{padding:4px}.atlas-parchment-stop{width:47%;padding:11px 5px}.atlas-parchment-stop strong{font-size:.78rem}.atlas-parchment-stop small{font-size:.69rem}.atlas-parchment-start{font-size:.9rem}.atlas-parchment-map{margin:14px 0}}' +
     '.atlas-journey-prose,.atlas-journey-article-body{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.85}.atlas-journey-article-body{font-size:1.08rem}.atlas-journey-timeline{list-style:none;padding:0;margin:18px 0}.atlas-journey-timeline li{display:flex;gap:15px;padding:12px 0;border-bottom:1px solid #e4d9c8}.atlas-journey-timeline strong{display:block}.atlas-journey-timeline small{display:block;color:#776f61;margin-top:3px}.atlas-journey-dot{width:35px;height:35px;border-radius:50%;border:1px solid #b9ae99;display:grid;place-items:center;flex-shrink:0}.atlas-journey-timeline li.done .atlas-journey-dot{background:#5a715b;color:white}.atlas-journey-memory{margin:13px 0;padding:18px;border-radius:13px;background:#f1eadb}.atlas-journey-memory p{white-space:pre-wrap;line-height:1.7}.atlas-journey-memory img{max-width:100%;max-height:450px;border-radius:11px}' +
     '.atlas-feature-dialog label{display:block;font-weight:600;margin:16px 0 8px}.atlas-feature-dialog input:not([type=checkbox]),.atlas-feature-dialog textarea,.atlas-feature-dialog select{display:block;width:100%;border:1px solid #c6bba7;border-radius:8px;background:white;padding:11px;margin-top:8px;font:inherit}.atlas-journey-check{display:flex!important;align-items:center;gap:12px}.atlas-journey-comment{padding:13px 0;border-bottom:1px solid #d7ccbb}.atlas-journey-comment p{white-space:pre-wrap;line-height:1.6}.atlas-journey-editor-row{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #d7ccbb;padding:13px 0}.atlas-journey-editor-row small{display:block;color:#766f65;margin-top:4px}' +
     '@media(max-width:650px){.atlas-feature-dialog{padding:24px 18px}.atlas-journey-editor-row{align-items:flex-start;flex-direction:column}}';
@@ -365,4 +394,9 @@
     if (client()) { clearInterval(starter); void fetchStories(); }
     else if (++polls > 40) clearInterval(starter);
   },500);
+  window.addEventListener('atlas-shared-updated', function () { void fetchStories(); });
+  var syncScript = document.createElement('script');
+  syncScript.src = 'assets/atlas-public-sync.js';
+  syncScript.defer = true;
+  document.head.appendChild(syncScript);
 })();
