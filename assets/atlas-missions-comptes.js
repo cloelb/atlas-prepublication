@@ -42,7 +42,7 @@
       '<section class="atlas-v29-invite wrap" aria-label="Créer son Atlas personnel">' +
       '<div><span class="eyebrow">Ton Atlas personnel</span><h2>Construis ton chemin. Garde tes traces.</h2>' +
       '<p>Pour ne rien perdre, crée ton compte avant de définir ton Cap, lancer tes Missions ou écrire dans ton Carnet.</p></div>' +
-      '<div class="atlas-v29-invite-actions"><button class="btn" data-atlas-account="signup">Créer mon Atlas →</button>' +
+      '<div class="atlas-v29-invite-actions"><button class="btn" data-atlas-account="signup">' + (session ? 'Ouvrir mon Atlas →' : 'Créer mon Atlas →') + '</button>' +
       '<button class="btn outline" data-atlas-account="signin">Me connecter</button></div></section>');
   }
 
