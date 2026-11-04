@@ -309,10 +309,33 @@
     guide.setAttribute('aria-label','Explorer les chapitres de l’Atlas de Cloé');
     guide.innerHTML='<div class="atlas-v31-guide-top"><span class="eyebrow">L’Atlas de Cloé · Un chemin vivant</span><span class="atlas-v31-guide-star" aria-hidden="true">✦</span></div>'+
       '<p>Entre dans mes missions, feuillette ma bibliothèque et découvre mes réflexions.</p>'+
-      '<div class="atlas-v31-guide-actions"><button type="button" data-atlas-jump="public-missions">Mes missions <span>↗</span></button>'+
-      '<button type="button" data-atlas-jump="atlas-v31-library">Ma bibliothèque <span>↗</span></button>'+
-      '<button type="button" data-atlas-jump="public-carnets">Mes réflexions <span>↗</span></button></div>';
+      '<div class="atlas-v31-guide-actions"><button type="button" data-atlas-jump="public-missions" aria-controls="public-missions">Mes missions <span>↗</span></button>'+
+      '<button type="button" data-atlas-jump="atlas-v31-library" aria-controls="atlas-v31-library">Ma bibliothèque <span>↗</span></button>'+
+      '<button type="button" data-atlas-jump="public-carnets" aria-controls="public-carnets">Mes réflexions <span>↗</span></button></div>';
     first.insertAdjacentElement('afterend',guide);
+  }
+  function targetChapter(id) {
+    if (id==='atlas-v31-library') return document.getElementById('atlas-v31-library') || document.getElementById('public-lectures');
+    if (id==='public-missions') return document.getElementById('public-missions');
+    if (id==='public-carnets') return document.getElementById('public-carnets');
+    return null;
+  }
+  function jumpToChapter(id) {
+    if (!siteVisible()) return;
+    // Le routeur recrée le contenu après un retour depuis l'accueil.
+    // Réactiver les fonctions avant de chercher le point d'ancrage.
+    window.dispatchEvent(new Event('atlas-public-ensure-visible'));
+    requestAnimationFrame(function () {
+      var target=targetChapter(id);
+      if (!target) {
+        console.warn('ATLAS section publique indisponible :',id);
+        return;
+      }
+      // Un déplacement absolu évite que le clic paraisse inactif lorsque
+      // les chapitres sont reconstruits avec des hauteurs différentes.
+      var top=Math.max(0,window.scrollY+target.getBoundingClientRect().top-90);
+      window.scrollTo({top:top,behavior:'smooth'});
+    });
   }
   function enhancePersonal() {personalMission();personalBook();personalRecovery();personalEditor();}
   function enhance() { drawBooks();drawGuide();enhancePersonal(); }
@@ -477,9 +500,7 @@
     var close=e.target.closest('[data-atlas-close-book]');
     if(close){e.preventDefault();closeBook();return;}
     var jump=e.target.closest('[data-atlas-jump]');
-    if(jump){e.preventDefault();var target=document.getElementById(jump.dataset.atlasJump);
-      if(!target && jump.dataset.atlasJump==='atlas-v31-library')target=document.getElementById('public-lectures');
-      if(target)target.scrollIntoView({behavior:'smooth',block:'start'});return;}
+    if(jump){e.preventDefault();jumpToChapter(jump.dataset.atlasJump);return;}
     var recovery=e.target.closest('[data-atlas-recover-book]');
     if(recovery){e.preventDefault();recoverBook(recovery.dataset.atlasRecoverBook);return;}
     var m=e.target.closest('[data-atlas-share-mission]');

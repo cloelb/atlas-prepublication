@@ -8,6 +8,7 @@
   var storiesReady = false;
   var loading = false;
   var lastAdmin = false;
+  var lastPublicPage = null;
   var currentArticle = null;
   var activeOverlay = null;
   var imagesByTerritory = {};
@@ -70,7 +71,7 @@
   }
   function enhanceMissions() {
     var gallery = document.querySelector('#public-missions .mission-gallery');
-    if (!gallery || gallery.dataset.journey || !storiesReady) return;
+    if (!gallery || !storiesReady || (gallery.dataset.journey && gallery.querySelector('[data-atlas-open-story]'))) return;
     if (!Object.keys(imagesByTerritory).length) {
       Array.from(gallery.querySelectorAll('article')).forEach(function (card) {
         var pill = card.querySelector('.pill');
@@ -93,19 +94,22 @@
   }
   function enhanceNotes() {
     var section = document.querySelector('#public-carnets');
-    if (!section || section.dataset.journey) return;
-    section.dataset.journey = '1';
+    if (!section) return;
     var cards = section.querySelectorAll('.atlas-public-card');
     var notes = getNotes();
+    // Ne pas marquer la rubrique comme prête tant que les publications ne sont
+    // pas chargées. La réhydratation doit fonctionner après chaque navigation.
+    if (!cards.length || !notes.length) return;
     Array.from(cards).forEach(function (card, i) {
       var n = notes[i];
-      if (!n) return;
+      if (!n || card.querySelector('[data-atlas-read]')) return;
       var excerpt = n.body.replace(/\s+/g, ' ').slice(0, 190);
       card.classList.add('atlas-journey-article-card');
       card.innerHTML = '<div class="eyebrow">' + esc(n.category || 'Réflexion') + '</div>' +
         '<h3>' + esc(n.title) + '</h3><p>' + esc(excerpt) + (n.body.length > 190 ? '…' : '') + '</p>' +
         '<button type="button" class="btn outline" data-atlas-read="' + esc(n.id) + '">Lire la réflexion →</button>';
     });
+    section.dataset.journey = '1';
   }
   function storyDetail(m) {
     var ss=stepsOf(m), finished=m.status==='terminee', done=ss.filter(function(s){return s.doneAt;}).length;
@@ -340,20 +344,39 @@
     feedback.textContent = 'Merci ! Ton commentaire a été reçu et sera affiché après validation.';
   }
   function enhance() {
+    // Les Carnets sont publics : ils ne doivent pas attendre une requête Missions
+    // ni une vérification du rôle fondateur pour retrouver leur bouton de lecture.
+    enhanceNotes();
     if (host.isAdmin() !== lastAdmin && !loading && client()) { void fetchStories(); return; }
     enhanceMissions();
-    enhanceNotes();
     enhanceEditor();
+  }
+  function publicPageReentered() {
+    var page = document.querySelector('.public-v12');
+    if (!page) { lastPublicPage = null; return; }
+    if (page !== lastPublicPage) {
+      lastPublicPage = page;
+      // La navigation réécrit le HTML statique : réinjecter le parcours vivant
+      // et relire Supabase, sans demander à l'utilisateur de recharger la page.
+      enhance();
+      void fetchStories();
+    }
   }
   document.addEventListener('click', function (e) {
     var close = e.target.closest('[data-atlas-close]');
     if (close) { e.preventDefault(); closeOverlay(); return; }
     var story = e.target.closest('[data-atlas-open-story]');
     if (story) { e.preventDefault(); var m = getStory(story.dataset.atlasOpenStory); if (m) overlay(storyDetail(m)); return; }
-    var article = e.target.closest('.atlas-journey-article-card');
+    var article = e.target.closest('#public-carnets .atlas-public-card');
     if (article && !e.target.closest('button')) {
       var link = article.querySelector('[data-atlas-read]');
-      if (link) { e.preventDefault(); void articleDetail(link.dataset.atlasRead); return; }
+      // Même si la carte affichée vient de l'ancien rendu, le clic peut ouvrir
+      // la réflexion dont le contenu est déjà publié.
+      var section = document.querySelector('#public-carnets');
+      var index = section ? Array.from(section.querySelectorAll('.atlas-public-card')).indexOf(article) : -1;
+      var note = index >= 0 ? getNotes()[index] : null;
+      var id = link ? link.dataset.atlasRead : note && note.id;
+      if (id) { e.preventDefault(); void articleDetail(id); return; }
     }
     var read = e.target.closest('[data-atlas-read]');
     if (read) { e.preventDefault(); void articleDetail(read.dataset.atlasRead); return; }
@@ -387,8 +410,22 @@
   new MutationObserver(function () {
     if (queued) return;
     queued = true;
-    window.requestAnimationFrame(function () { queued = false; enhance(); });
+    window.requestAnimationFrame(function () {
+      queued = false;
+      publicPageReentered();
+      enhance();
+    });
   }).observe(document.body,{childList:true,subtree:true});
+  // L'événement de navigation intervient après le rendu du routeur principal.
+  // Il sert de filet de sécurité si les Observers ne se déclenchent pas.
+  window.addEventListener('hashchange', function () {
+    window.requestAnimationFrame(function () { publicPageReentered(); enhance(); });
+  });
+  window.addEventListener('pageshow', function () {
+    window.requestAnimationFrame(function () { publicPageReentered(); enhance(); });
+  });
+  window.addEventListener('atlas-public-ensure-visible', function () { publicPageReentered(); enhance(); });
+  publicPageReentered();
   enhance();
   var polls = 0, starter = setInterval(function () {
     if (client()) { clearInterval(starter); void fetchStories(); }
