@@ -1528,6 +1528,19 @@ function canAdoptAddedCloudMissions(local,remote){
  remoteData.missions=existing;
  return JSON.stringify(canonical(localData))===JSON.stringify(canonical(remoteData));
 }
+// Les métadonnées de sauvegarde ne doivent pas créer de faux conflit.
+function sameAtlasContent(local,remote){
+ if(!local||!remote)return false;
+ function canonical(value){
+  if(Array.isArray(value))return value.map(canonical);
+  if(value&&typeof value==='object')
+   return Object.keys(value).sort().reduce(function(out,key){out[key]=canonical(value[key]);return out;},{});
+  return value;
+ }
+ const a={...local},b={...remote};
+ delete a.updatedAt;delete b.updatedAt;
+ return JSON.stringify(canonical(a))===JSON.stringify(canonical(b));
+}
 async function reconcileCloud(remote){
  if(!session||!cloudStore?.ready)return;
  if(!remote){
@@ -1542,7 +1555,10 @@ async function reconcileCloud(remote){
   delete window.__atlas_remote_pending;render();
   notify('Ton Atlas en ligne a été retrouvé.');return;
  }
- if(JSON.stringify(state)===JSON.stringify(remote)){
+ if(sameAtlasContent(state,remote)){
+  // Les champs personnels sont identiques. La différence ne concerne que
+  // l'horodatage de sauvegarde ou l'ordre des propriétés JSON.
+  state=remote;saveLocal(state);
   cloudConflict=false;delete window.__atlas_remote_pending;return;
  }
  if(canAdoptAddedCloudMissions(state,remote)){
