@@ -2255,9 +2255,11 @@ window.ATLAS_V12={getContent:()=>copy(sitePublished),getDraft:()=>copy(siteDraft
    const chapters=[...main.querySelectorAll('.public-chapter')];
    for(const c of chapters){
       const label=c.querySelector('.chapter-kicker')?.textContent?.toLowerCase()||'';
-      if(label.includes('missions'))c.id='v14-missions';
-      else if(label.includes('carnets'))c.id='v14-carnets';
-      else if(label.includes('histoire'))c.id='v14-histoire';
+      // Les identifiants publics doivent rester stables après chaque navigation :
+      // missions, bibliothèque et réflexions les utilisent pour être interactives.
+      if(label.includes('missions') && !c.id)c.id='public-missions';
+      else if(label.includes('carnets') && !c.id)c.id='public-carnets';
+      else if(label.includes('histoire') && !c.id)c.id='v14-histoire';
    }
    // V18 : cartes éditoriales sans traits dessinés ni observateur de fusain.
    main.querySelectorAll('.published-mission').forEach((card,i)=>{
