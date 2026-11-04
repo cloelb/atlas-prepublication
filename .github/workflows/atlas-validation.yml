@@ -15,6 +15,10 @@ jobs:
         run: node --check assets/atlas-missions-comptes.js
       - name: Tester les missions et la connexion
         run: node tests/atlas-feature-smoke.cjs
+      - name: Vérifier la nouvelle interface publique
+        run: |
+          node --check assets/atlas-public-journey.js
+          node tests/atlas-public-journey-smoke.cjs
       - name: Tester l’Atlas public et la confidentialité
         run: node tests/atlas-publication-smoke.cjs
       - name: Verifier le chargement et les controles de securite
