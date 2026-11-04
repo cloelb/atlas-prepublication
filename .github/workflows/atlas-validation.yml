@@ -29,6 +29,8 @@ jobs:
           node --check assets/atlas-weekly.js
           node tests/atlas-weekly-smoke.cjs
           node -e "const fs=require('fs');const html=fs.readFileSync('index.html','utf8');if(html.includes('data:image/webp;base64,'))throw Error('Illustrations WebP encore intégrées');if(!html.includes('assets/atlas-weekly.js'))throw Error('Ma semaine non chargée');if(!html.includes('noindex,nofollow'))throw Error('Prépublication non protégée');"
+      - name: Vérifier le menu Objectifs et les alertes de synchronisation
+        run: node tests/atlas-objectifs-sync-warning.cjs
       - name: Simuler deux téléphones et un conflit de sauvegarde
         run: node tests/atlas-two-devices-sync.cjs
       - name: Vérifier la fidélisation J+7, les campagnes Instagram et le consentement
