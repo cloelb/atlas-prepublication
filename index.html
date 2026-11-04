@@ -1282,7 +1282,7 @@ function todayPage(){const focus=missionAttention(state);pageFrame('aujourdhui',
 function atlasPage(){pageFrame('atlas',`<div class="wrap app-main"><div class="section-heading"><div><span class="eyebrow">✧ Le voyage intérieur</span><h1>Mon Atlas</h1><p class="muted">${h(state.cap||'Une direction. Autant de chemins que nécessaire.')}</p></div><button class="btn" data-action="new-mission">+ Une nouvelle Mission</button></div><div class="atlas-grid">${leftFolio()}${mapScene()}${rightFolio()}</div><div class="today-banner"><div><div class="eyebrow">Ton prochain geste</div><h3>Le moment d'agir est aujourd'hui.</h3><p>Consulte tes engagements et reprends une Mission, même après une pause.</p></div><div class="atlas-banner-actions"><button class="btn cream" data-action="souvenir">Garder une carte-souvenir</button><a href="#/aujourdhui" class="btn">Ouvrir mon quotidien →</a></div></div><div class="section-heading" style="margin-top:58px"><div><div class="eyebrow">Au fil du temps</div><h2>Les chemins ouverts.</h2></div>${link('missions','Toutes mes Missions ↗','link')}</div>${state.missions.length?`<div class="grid-cards">${state.missions.slice(0,4).map(m=>missionCard(m)).join('')}</div>`:emptyMission()}</div>`);}
 function emptyMission(){return `<div class="empty-engraving"><div class="glyph">✧</div><h3>Le premier chapitre est encore à écrire.</h3><p>Une Mission peut être minuscule ou durer toute une vie. Elle t'appartient.</p><button class="btn" data-action="new-mission">Écrire ma première Mission →</button></div>`;}
 function missionCard(m){const p=progress(m),t=TERRITORIES[m.territory];return `<a href="#/mission/${encodeURIComponent(m.id)}" class="mission-tile"><img src="${terrImage(m.territory)}" alt="" loading="lazy"><div class="inner"><span class="eyebrow">${h(t.name)} · ${m.mode==='guided'?'Chemin guidé':'Voie libre'}</span><h3>${h(m.title)}</h3><div class="mini-progress"><span style="width:${p.percent}%"></span></div><div class="meta">${p.done}/${p.total} Étape${p.total>1?'s':''} · ${p.finished?'Mission accomplie':'Chemin en cours ↗︎'}</div></div></a>`;}
-function missionsPage(){const all=state.missions.filter(m=>filterTerritory==='all'||m.territory===filterTerritory);pageFrame('missions',`<div class="wrap app-main"><div class="section-heading"><div><div class="eyebrow">Mon itinéraire</div><h1>Mes Missions</h1><p class="muted">Chaque chemin commence par un premier geste.</p></div><button class="btn" data-action="new-mission">+ Nouvelle Mission</button></div><div style="display:flex;gap:9px;flex-wrap:wrap;margin:28px 0">${[['all','Tous les chemins'],...Object.entries(TERRITORIES).map(([id,t])=>[id,t.name])].map(([id,name])=>`<button type="button" data-filter="${id}" class="btn slim ${id===filterTerritory?'':'transparent'}">${h(name)}</button>`).join('')}</div>${all.length?`<div class="grid-cards">${all.map(m=>missionCard(m)).join('')}</div>`:emptyMission()}</div>`);}
+function missionsPage(){const all=state.missions.filter(m=>filterTerritory==='all'||m.territory===filterTerritory);const syncNotice=cloudConflict&&session?'<div class="notice" style="margin:16px 0 24px">Les missions de ton compte sont visibles ici, mais les sauvegardes de tes appareils sont encore différentes. <button class="btn outline slim" data-action="settings">Vérifier la synchronisation</button></div>':'';pageFrame('missions',`<div class="wrap app-main"><div class="section-heading"><div><div class="eyebrow">Mon itinéraire</div><h1>Mes Missions</h1><p class="muted">Chaque chemin commence par un premier geste.</p></div><button class="btn" data-action="new-mission">+ Nouvelle Mission</button></div><div style="display:flex;gap:9px;flex-wrap:wrap;margin:28px 0">${[['all','Tous les chemins'],...Object.entries(TERRITORIES).map(([id,t])=>[id,t.name])].map(([id,name])=>`<button type="button" data-filter="${id}" class="btn slim ${id===filterTerritory?'':'transparent'}">${h(name)}</button>`).join('')}</div>${syncNotice}${all.length?`<div class="grid-cards">${all.map(m=>missionCard(m)).join('')}</div>`:emptyMission()}</div>`);}
 function missionPage(id){const m=state.missions.find(m=>m.id===id);if(!m){navigate('missions');return;}const t=TERRITORIES[m.territory],p=progress(m),n=m.steps.length,H=Math.max(510,n*172+125);let coords=m.steps.map((_,i)=>[i%2===0?215:485,122+i*172]);let path=coords.map(([x,y],i)=>i===0?`M ${x} ${y}`:`Q 350 ${y-87} ${x} ${y}`).join(' ');let doneCount=m.steps.findIndex(s=>!s.doneAt);if(doneCount<0)doneCount=n;const progressed=coords.slice(0,Math.max(1,doneCount));let passed=progressed.map(([x,y],i)=>i===0?`M ${x} ${y}`:`Q 350 ${y-87} ${x} ${y}`).join(' ');let cur=coords[Math.min(doneCount,Math.max(0,n-1))]||[350,100];pageFrame('mission',`<div class="wrap app-main"><a href="#/missions" class="link">← Mes Missions</a><div class="mission-hero"><div class="mission-hero-copy"><div class="eyebrow">${h(t.name)} · ${m.mode==='guided'?'Chemin guidé':'Voie libre'}</div><h1>${h(m.title)}</h1><p class="lead">${h(m.why||t.motto)}</p><div class="rule"></div><span class="pill">${p.done} passage${p.done>1?'s':''} sur ${p.total}</span> <span class="pill">${p.finished?'✦ Mission accomplie':'✧ Mon chemin est ouvert'}</span></div><div class="mission-hero-art"><img src="${terrImage(m.territory)}" alt="Illustration du Territoire ${h(t.name)}"></div></div><div class="section-heading"><div><div class="eyebrow">La carte de cette Mission</div><h2>À chaque pas, une trace.</h2></div><button class="btn outline" data-action="new-step" data-id="${attr(m.id)}">+ Une Étape</button></div>${n?`<div class="mission-map" style="height:${H}px"><div class="journey-start">Le commencement</div><svg class="journey-svg" viewBox="0 0 700 ${H}" preserveAspectRatio="none" aria-hidden="true"><path class="basepath" d="${path}"/><path class="passed" d="${passed}"/></svg>${m.steps.map((st,i)=>{const [x,y]=coords[i],locked=!stepCanOpen(m,i)&&!st.doneAt;return `<button type="button" class="waypoint ${st.doneAt?'done':''} ${locked?'locked':''}" style="left:${x/700*100}%;top:${y}px" data-action="open-step" data-id="${attr(st.id)}" data-mission="${attr(m.id)}" ${locked?'disabled':''}><span class="seal">${st.doneAt?'✦':locked?'⌑':'✧'}</span><strong>${h(st.title)}</strong><small>${st.doneAt?'Scellé le '+date(st.doneAt):locked?'À découvrir':'À vivre · toucher pour avancer'}</small></button>`}).join('')}<div class="journey-end">${p.finished?'✧ Ce chemin a été vécu.':'La suite s’écrit en chemin.'}</div></div>`:emptyStep(m)}<div class="folio-footer">Le chemin compte autant que l'arrivée. ✧</div><div class="recovery"><div class="eyebrow" style="color:#e6c48b">Le courage de recommencer</div><h3>Un détour n'est pas une fin.</h3><p>Une Mission semble difficile ou s'est arrêtée ? Reviens au sens de ton Cap, choisis un petit pas réalisable et reprends ton chemin sans repartir de zéro.</p><button class="btn" data-action="recover" data-id="${attr(m.id)}">Retrouver mon chemin →</button></div>${missionRecords(m)}${p.finished?`<div class="chapter-finished"><div class="chapter-halo">✦</div><div class="eyebrow">Chapitre accompli · ${date(m.completedAt)}</div><h3>Cette Mission fait désormais partie de ton histoire.</h3><p>Tu peux célébrer le chemin parcouru, écrire ton bilan ou ouvrir une nouvelle grande Mission dans le Territoire ${h(t.name)}.</p><div class="actions"><button class="btn cream" data-action="celebrate-mission" data-id="${attr(m.id)}">✦ Revoir ma célébration</button><button class="btn outline" data-action="new-note" data-mission="${attr(m.id)}">Écrire mon bilan</button><button class="btn" data-action="new-mission-in-territory" data-id="${attr(m.territory)}">+ Une nouvelle Mission</button></div></div>`:''}</div>`);}
 function missionRecords(m){const items=[...(state.checkins||[]).filter(c=>c.missionId===m.id).map(c=>({date:c.date,title:'Faire le point',detail:[c.difficulty?'Constat : '+c.difficulty:'', 'Prochain pas : '+c.nextAction, c.scheduledFor?'Prévu pour le '+date(c.scheduledFor):''].filter(Boolean)})),...(m.reflections||[]).filter(x=>x.type==='recovery').map(r=>({date:r.date,title:'Retrouver mon chemin',detail:['Frein : '+r.reason,'Reprise choisie : '+r.plan]}))].sort((a,b)=>b.date.localeCompare(a.date));return items.length?`<section class="mission-records"><div class="eyebrow">Ma mémoire de Mission</div><h3>Les bilans et les recommencements.</h3>${items.map(x=>`<article class="mission-record"><time>${date(x.date)}</time><h4>${h(x.title)}</h4>${x.detail.map(line=>`<p>${h(line)}</p>`).join('')}</article>`).join('')}</section>`:'';}
 function emptyStep(m){return `<div class="empty-engraving"><div class="glyph">✦</div><h3>À toi de tracer les premiers passages.</h3><p>Quel serait le premier geste concret pour avancer ?</p><button class="btn" data-action="new-step" data-id="${attr(m.id)}">Ajouter ma première Étape</button></div>`}
@@ -1452,7 +1452,8 @@ function settings(mode='signup'){
  const email=session.email?`<p class="muted text-sm">Adresse e-mail : ${h(session.email)}</p>`:'';
  const conflict=cloudConflict?'<button class="btn outline" data-action="compare-cloud">Choisir la bonne version de mon Atlas</button>':'';
  const guest=hasAtlasContent(loadLocal())?'<button class="btn outline" data-action="import-guest">Récupérer mes souvenirs de cet appareil</button>':'';
- modal('Mon compte','Mon Atlas',email+`<p class="muted text-sm">${h(cloudStatus())}</p><div class="actions">${conflict}${guest}<button class="btn outline" data-action="signout">Se déconnecter</button></div>`);
+ const warning=cloudConflict?'<p class="notice">Les missions manquantes ont été récupérées si elles existaient en ligne. Les autres différences entre cet ordinateur et Supabase restent protégées. Vérifie les deux versions avant de choisir.</p>':'';
+ modal('Mon compte','Mon Atlas',email+`<p class="muted text-sm">${h(cloudStatus())}</p>${warning}<div class="actions"><button class="btn outline" data-action="sync-now">Vérifier mes missions sur Supabase</button><button class="btn outline" data-action="export">Télécharger ma sauvegarde locale</button>${conflict}${guest}<button class="btn outline" data-action="signout">Se déconnecter</button></div>`);
 }
 function auth(mode='signup'){
  if(!cloud)return notify('Connexion aux comptes temporairement indisponible.');
@@ -1501,17 +1502,20 @@ function cloudStatus(){
   return 'Compte connecté · dernière sauvegarde cloud confirmée (enregistrée sur ton compte).';
 }
 // Récupérer une Mission ajoutée en ligne après une restauration sans perdre les données locales.
+function missingCloudMissions(local,remote){
+ if(!Array.isArray(local?.missions)||!Array.isArray(remote?.missions))return [];
+ const ids=new Set(local.missions.map(m=>m&&m.id).filter(Boolean));
+ return remote.missions.filter(m=>m&&typeof m.id==='string'&&m.id&&!ids.has(m.id));
+}
+// Comparer les contenus plutôt que la date de sauvegarde : un autre appareil
+// peut avoir touché l'horodatage sans modifier les notes ni les validations.
 function canAdoptAddedCloudMissions(local,remote){
  if(!local||!remote||!Array.isArray(local.missions)||!Array.isArray(remote.missions))return false;
- const before=Date.parse(local.updatedAt),after=Date.parse(remote.updatedAt);
- if(!Number.isFinite(before)||!Number.isFinite(after)||after<=before)return false;
  const ids=new Set(local.missions.map(m=>m&&m.id).filter(Boolean));
  if(!ids.size||ids.size!==local.missions.length)return false;
- const additions=remote.missions.filter(m=>m&&m.id&&!ids.has(m.id));
+ const additions=missingCloudMissions(local,remote);
  if(!additions.length||remote.missions.length!==local.missions.length+additions.length)return false;
  const existing=remote.missions.filter(m=>m&&ids.has(m.id));
- // Les missions existantes, leurs validations, les notes et tous les autres contenus
- // doivent correspondre. La date de synchronisation est seule ignorée.
  const canonical=function(value){
   if(Array.isArray(value))return value.map(canonical);
   if(value&&typeof value==='object'){
@@ -1519,8 +1523,8 @@ function canAdoptAddedCloudMissions(local,remote){
   }
   return value;
  };
- const {updatedAt:localDate,...localData}=local;
- const {updatedAt:remoteDate,...remoteData}=remote;
+ const localData={...local},remoteData={...remote};
+ delete localData.updatedAt;delete remoteData.updatedAt;
  remoteData.missions=existing;
  return JSON.stringify(canonical(localData))===JSON.stringify(canonical(remoteData));
 }
@@ -1548,8 +1552,21 @@ async function reconcileCloud(remote){
   delete window.__atlas_remote_pending;render();
   notify('Tes Missions retrouvées en ligne ont été réintégrées à ton Atlas.');return;
  }
+ // Même si d'autres informations divergent, restaurer uniquement les missions
+ // absentes de cet appareil. Ne remplacer ni notes, ni validations, ni livres.
+ const missing=missingCloudMissions(state,remote);
+ if(missing.length){
+  const enriched={...state,missions:[...state.missions,...structuredClone(missing)]};
+  if(saveLocal(enriched)){
+   state=enriched;
+   cloudConflict=true;window.__atlas_remote_pending=remote;
+   render();
+   notify('Mission(s) retrouvée(s). Les autres différences restent protégées : ouvre Mon compte pour terminer la synchronisation.');
+   return;
+  }
+ }
  cloudConflict=true;window.__atlas_remote_pending=remote;
- notify('Deux versions différentes existent. Ouvre Compte pour choisir celle à conserver.');
+ notify('Deux versions différentes existent. Ouvre Mon compte pour les comparer.');
 }
 async function hydrateAccount(user){
  if(!user||!cloudStore)return;
