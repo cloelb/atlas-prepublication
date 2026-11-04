@@ -178,6 +178,7 @@
     var account = e.target.closest('[data-atlas-account]');
     if (account) {
       e.preventDefault(); e.stopImmediatePropagation();
+      if (session) { navigate('atlas'); return; }
       awaitingAction = {type:'open-atlas'};
       requestAccount(awaitingAction, account.dataset.atlasAccount);
       return;
