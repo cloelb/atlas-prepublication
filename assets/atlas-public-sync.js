@@ -79,7 +79,7 @@
   async function readLinkedStories() {
     if (!founder() || !db()) return;
     var res=await db().from('atlas_public_mission_stories').select('*').eq('site_slug','cloe').limit(80);
-    if (!res.error) { linkedStories=res.data||[]; enhancePersonal(); }
+    if (!res.error) { linkedStories=res.data||[]; var panel=document.querySelector('.atlas-v31-share-mission'); if(panel)panel.remove(); enhancePersonal(); }
   }
   function coverMarkup(b, alt) {
     var image=safeCover(b.cover_data);
