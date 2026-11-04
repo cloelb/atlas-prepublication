@@ -23,6 +23,7 @@ jobs:
           node tests/atlas-public-journey-smoke.cjs
           node --check assets/atlas-public-sync.js
           node tests/atlas-public-sync-smoke.cjs
+          node tests/atlas-public-navigation-smoke.cjs
       - name: Tester l’Atlas public et la confidentialité
         run: node tests/atlas-publication-smoke.cjs
       - name: Verifier le chargement et les controles de securite
