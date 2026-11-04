@@ -43,7 +43,7 @@
     var oldSteps = Array.isArray(old.steps) ? old.steps : [];
     var done = Boolean(m.completedAt);
     return {
-      id:storyId(m.id),site_slug:'cloe',
+      id:old.id || storyId(m.id),linked_private_id:m.id,site_slug:'cloe',
       title:clean(m.title,160),
       territory:mapTerritory[m.territory]||'Esprit',
       description:clean(m.why,1800),
@@ -78,7 +78,7 @@
   }
   async function readLinkedStories() {
     if (!founder() || !db()) return;
-    var res=await db().from('atlas_public_mission_stories').select('*').eq('site_slug','cloe').like('id','personal-%').limit(80);
+    var res=await db().from('atlas_public_mission_stories').select('*').eq('site_slug','cloe').limit(80);
     if (!res.error) { linkedStories=res.data||[]; enhancePersonal(); }
   }
   function coverMarkup(b, alt) {
@@ -173,11 +173,19 @@
     var m=person && (person.missions||[]).find(function(x){return x.id===id;});
     var where=document.querySelector('.mission-hero-copy');
     if(!m||!where||where.querySelector('.atlas-v31-share-mission'))return;
-    var linked=linkedStories.find(function(x){return x.id===storyId(m.id);});
+    var linked=linkedStories.find(function(x){return x.linked_private_id===m.id||x.id===storyId(m.id);});
     var published=linked&&linked.is_published;
+    var options=linked?'':linkedStories.filter(function(x){
+      return !x.linked_private_id && x.id.indexOf('personal-')!==0;
+    }).map(function(x){
+      return '<option value="'+esc(x.id)+'">'+esc(x.title)+'</option>';
+    }).join('');
     var area=document.createElement('div');
     area.className='atlas-v31-share-mission';
     area.innerHTML='<p class="muted text-sm">Ton chemin reste personnel. Tu peux choisir de montrer son titre, ses étapes et sa progression sur l’Atlas de Cloé, sans publier ton Carnet privé.</p>'+
+      (!linked && options?'<label for="atlas-v31-mission-target">Remplacer une grande Mission publique existante, ou en créer une nouvelle :</label>'+
+      '<select id="atlas-v31-mission-target"><option value="new">Créer une nouvelle grande Mission publique</option>'+
+      options+'</select>':'')+
       '<button class="btn outline" type="button" data-atlas-share-mission="'+esc(m.id)+'">'+
       (published?'Retirer cette Mission du public':'✦ Partager cette Mission sur mon Atlas public')+'</button>'+
       '<span class="atlas-v31-share-status">'+(published?' ● Visible par tous':' ○ Privée')+'</span>';
@@ -240,9 +248,14 @@
     if(!founder()||!db())return;
     var person=privateState(),m=person&&(person.missions||[]).find(function(x){return x.id===id;});
     if(!m)return;
-    var prior=linkedStories.find(function(x){return x.id===storyId(id);});
-    var data=prior && prior.is_published ? {is_published:false,updated_at:new Date().toISOString()} : storyFromPersonal(m,prior);
-    var r=prior ? await db().from('atlas_public_mission_stories').update(data).eq('id',storyId(id)) :
+    var prior=linkedStories.find(function(x){return x.linked_private_id===id||x.id===storyId(id);});
+    var target=document.getElementById('atlas-v31-mission-target');
+    if(!prior && target && target.value!=='new'){
+      prior=linkedStories.find(function(x){return x.id===target.value&&!x.linked_private_id;});
+    }
+    var data=prior && prior.is_published && prior.linked_private_id===id ?
+      {is_published:false,updated_at:new Date().toISOString()} : storyFromPersonal(m,prior);
+    var r=prior ? await db().from('atlas_public_mission_stories').update(data).eq('id',prior.id) :
       await db().from('atlas_public_mission_stories').insert(data);
     if(r.error){window.alert('Partage impossible : '+r.error.message);return;}
     await readLinkedStories();
@@ -283,15 +296,15 @@
     try {
       // Recharger les choix de visibilité du serveur avant de synchroniser.
       var results=await Promise.all([
-        db().from('atlas_public_mission_stories').select('*').eq('site_slug','cloe').like('id','personal-%').limit(80),
+        db().from('atlas_public_mission_stories').select('*').eq('site_slug','cloe').limit(80),
         db().from('atlas_public_books').select('*').eq('site_slug','cloe').limit(50)
       ]);
       if(results[0].error||results[1].error)throw results[0].error||results[1].error;
       linkedStories=results[0].data||[];
       sharedBooks=results[1].data||[];
       var tasks=[];
-      linkedStories.filter(function(r){return r.is_published;}).forEach(function(original){
-        var id=original.id.slice('personal-'.length);
+      linkedStories.filter(function(r){return r.is_published&&r.linked_private_id;}).forEach(function(original){
+        var id=original.linked_private_id;
         var mission=(person.missions||[]).find(function(m){return m.id===id;});
         if(!mission)return; // Une suppression privée n'efface pas l'archive publique.
         var refreshed=storyFromPersonal(mission,original);
@@ -362,7 +375,7 @@
     '.atlas-v31-meter{display:block;height:8px;border-radius:20px;overflow:hidden;background:#ded6c6;margin:7px 0}.atlas-v31-meter>span{display:block;height:100%;background:#5e805f;border-radius:inherit}',
     '#atlas-v31-book-overlay{position:fixed;inset:0;z-index:6000;display:grid;place-items:center;padding:16px}.atlas-v31-shade{position:absolute;inset:0;background:#19281fc9}.atlas-v31-book-dialog{position:relative;width:min(850px,100%);max-height:90vh;overflow:auto;border-radius:22px;padding:clamp(24px,5vw,48px);background:#fff7e9;box-shadow:0 20px 60px #0004;color:#2b4337}.atlas-v31-close{position:absolute;right:18px;top:12px;font:inherit;font-size:2rem;border:0;background:none;cursor:pointer}',
     '.atlas-v31-book-detail{display:grid;grid-template-columns:210px 1fr;gap:32px;align-items:start}.atlas-v31-book-detail>img,.atlas-v31-book-detail>.atlas-v31-book-placeholder{width:210px;max-height:320px;object-fit:contain;border-radius:13px;box-shadow:8px 10px 23px #0002}.atlas-v31-book-detail>.atlas-v31-book-placeholder{height:300px}.atlas-v31-book-detail h2{font-family:var(--serif);font-size:clamp(2.2rem,5vw,3.7rem);margin:8px 0 4px;line-height:1.05}.atlas-v31-book-detail h3{font-family:var(--serif);font-size:1.8rem;margin:26px 0 10px}.atlas-v31-author{font-style:italic;color:#756a59}.atlas-v31-opinion{line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere}',
-    '.atlas-v31-share-mission{margin:22px 0;padding:20px;border:1px solid #d3bea0;border-radius:16px;background:#f8f0df}.atlas-v31-share-mission .btn{margin:8px 12px 8px 0}.atlas-v31-share-status{font-size:.88rem;color:#496b4f}',
+    '.atlas-v31-share-mission{margin:22px 0;padding:20px;border:1px solid #d3bea0;border-radius:16px;background:#f8f0df}.atlas-v31-share-mission .btn{margin:8px 12px 8px 0}.atlas-v31-share-mission select{display:block;max-width:100%;padding:10px;background:#fff;border:1px solid #b9a991;border-radius:8px;margin:10px 0}.atlas-v31-share-status{font-size:.88rem;color:#496b4f}',
     '#atlas-v31-book-publisher{margin:24px 0 0;padding:20px;border:1px solid #d1bea3;border-radius:16px;background:#f9f1e5}#atlas-v31-book-publisher textarea{width:100%;min-height:110px;margin:10px 0 14px;padding:12px;border:1px solid #bcae95;border-radius:10px;font:inherit;background:#fff}#atlas-v31-book-publisher .actions{display:flex;flex-wrap:wrap;gap:10px}.atlas-v31-links{padding-top:22px;border-top:1px solid #d2c7b7;margin-top:22px}',
     '@keyframes atlas-v31-marquee{to{transform:translateX(calc(-50% - 11px))}}',
     '@media(max-width:650px){#atlas-v31-public-guide{padding:20px}.atlas-v31-slider-legend{display:none}.atlas-v31-book-detail{grid-template-columns:1fr}.atlas-v31-book-detail>img,.atlas-v31-book-detail>.atlas-v31-book-placeholder{width:150px;height:215px}.atlas-v31-book{width:165px;flex-basis:165px}.atlas-v31-book-cover{height:180px}.atlas-v31-guide-actions{gap:9px}.atlas-v31-guide-actions button{padding:10px 13px}}',
