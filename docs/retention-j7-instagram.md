@@ -18,7 +18,7 @@ Les paramètres UTM bruts, pages de carnet, titres de Missions, emails et répon
 
 ## Calcul de J+7
 
-Convention retenue : une personne consentante est considérée comme « revenue à J+7 » si une visite est observée entre le **7e et le 13e jour inclus** après sa toute première Mission. Une cohorte n'est affichée qu'une fois les 14 jours d'observation écoulés (données complètes).
+Convention retenue : une personne consentante est considérée comme « revenue à J+7 » si une visite est observée entre le **7e et le 13e jour inclus** après sa toute première Mission. Une cohorte n'est affichée qu'une fois J+13 terminé, soit à partir de J+14 (données complètes).
 
 À exécuter **dans l'éditeur SQL Supabase**, jamais dans le navigateur :
 
@@ -46,7 +46,7 @@ select
   round(100.0 * count(r.visitor_id) / nullif(count(*), 0), 1) as retour_pourcent
 from premiere_mission p
 left join retours r on r.visitor_id = p.visitor_id
-where p.jour_initial <= (current_date - 13)
+where p.jour_initial <= (current_date - 14)
 group by p.jour_initial
 order by p.jour_initial desc;
 ```
