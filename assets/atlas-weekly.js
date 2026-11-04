@@ -34,6 +34,7 @@
   function accountHint() {
     if (session) {
       return '<div class="atlas-week-account"><span>✦ ' + h(cloudStatus()) +
+        (hasAtlasContent(loadLocal()) ? '<br><strong>Un essai existe sur cet appareil :</strong> ouvre « Mon compte », puis « Récupérer mes souvenirs de cet appareil ». Rien n’est importé automatiquement.' : '') +
         '</span><button type="button" class="btn outline slim" data-atlas-week="account">Mon compte</button></div>';
     }
     return '<div class="atlas-week-account atlas-week-guest"><span><strong>Essai sur cet appareil.</strong> ' +
