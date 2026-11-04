@@ -1,0 +1,18 @@
+name: Verifier les changements Atlas
+on:
+  push:
+    branches:
+      - feature/edition-missions-comptes-2026-11-04
+  pull_request:
+    branches:
+      - main
+jobs:
+  integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verifier la syntaxe JavaScript
+        run: node --check assets/atlas-missions-comptes.js
+      - name: Verifier le chargement et les controles de securite
+        run: |
+          node -e "const fs=require('fs');const html=fs.readFileSync('index.html','utf8');const js=fs.readFileSync('assets/atlas-missions-comptes.js','utf8');if(!html.includes('<script src=\"assets/atlas-missions-comptes.js\"></script>'))throw Error('Script non charge');for(const required of ['needsAccount','missionControls','atlas-v29-insert-form','atlas-v29-mission-form','atlas-v29-step-form','atlas-v29-danger'])if(!js.includes(required))throw Error('Fonction manquante: '+required);"
