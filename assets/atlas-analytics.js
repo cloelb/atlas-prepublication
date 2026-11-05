@@ -107,7 +107,7 @@
         (choice === 'no' ? '' : '<button class="btn transparent slim" data-atlas-analytics="disable" type="button">Non merci</button>');
     return '<section class="atlas-analytics-consent" aria-label="Mesure d’audience facultative" id="atlas-analytics-consent">' +
       '<div><span class="eyebrow">CONFIDENTIALITÉ · TON CHOIX</span><p>' + message + '</p>' +
-      '<small>Seulement les dates, quelques actions et la provenance Instagram éventuelle. Jamais les titres, notes, bilans, e-mails ou contenus privés. Refuser ne change rien à ATLAS. La désactivation arrête les nouvelles mesures.</small></div>' +
+      '<small>Seulement les dates, quelques actions et la provenance Instagram éventuelle. Jamais les titres, notes, bilans, e-mails ou contenus privés. Refuser ne change rien à ATLAS. La désactivation arrête les nouvelles mesures. Événements supprimés automatiquement après 90 jours.</small></div>' +
       '<div class="atlas-analytics-actions">' + buttons + '</div></section>';
   }
   function enhance() {
