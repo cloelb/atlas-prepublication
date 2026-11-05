@@ -86,6 +86,18 @@
       '<button class="btn" data-atlas-week="quick">Créer ma première Mission →</button>' +
       '<p class="muted text-sm">Aucun Cap à remplir, aucun compte obligatoire pour essayer.</p></section>';
   }
+  // Les objectifs utilisent les mêmes actions que l'ancienne page Objectifs :
+  // aucun doublon et aucune migration de sauvegarde.
+  function objectivesMarkup() {
+    return '<section id="atlas-week-objectives" class="atlas-week-objectives" aria-label="Mes objectifs et petits pas">' +
+      '<div class="atlas-week-objectives-intro"><div><span class="eyebrow">MON RYTHME · MES OBJECTIFS</span>' +
+      '<h2>Mes petits pas.</h2><p>Un même parcours pour aujourd’hui, cette semaine, ce mois-ci et plus loin.</p></div>' +
+      '<button type="button" class="btn" data-action="new-action">+ Un objectif</button></div>' +
+      '<div class="todo-horizons">' + Object.keys(HORIZONS).map(actionHorizonPanel).join('') + '</div>' +
+      '<p class="todo-reset-note">Les objectifs récurrents se renouvellent à chaque période. Tes validations et ton historique sont conservés dans ton Atlas privé.</p>' +
+      '</section>';
+  }
+
   function weeklyPage() {
     var m = chosenMission();
     var day = new Date().getDay();
@@ -97,7 +109,7 @@
       '<div class="atlas-week-intro"><span class="eyebrow">MON ATLAS · MA SEMAINE</span>' +
       '<h1>Un pas après l’autre.</h1><p class="lead">' + suggestion + '</p>' +
       '<p class="muted">' + weekLabel() + ' · À ton rythme, sans série à perdre.</p></div>' +
-      accountHint() + (m ? missionMarkup(m) : emptyMarkup()) +
+      accountHint() + (m ? missionMarkup(m) : emptyMarkup()) + objectivesMarkup() +
       '<section class="atlas-week-ritual" aria-label="Le rituel de ma semaine">' +
       '<h2>Ma semaine, simplement.</h2><div class="atlas-week-ritual-grid">' +
       '<div><span class="eyebrow">Lundi</span><h3>Choisir</h3><p>Une Mission qui compte pour moi.</p></div>' +
@@ -106,6 +118,12 @@
       '<div class="atlas-week-footer-actions"><button class="btn outline" data-atlas-week="quick">+ Une nouvelle Mission</button>' +
       '<a class="link" href="#/atlas">Explorer la carte de mon Atlas →</a>' +
       '<button type="button" class="link" data-atlas-week="calendar">Rappels facultatifs lundi et dimanche (calendrier) ↗</button></div></section></div>');
+    if (window.location && window.location.hash.indexOf('?objectifs') !== -1) {
+      requestAnimationFrame(function () {
+        var section = document.getElementById('atlas-week-objectives');
+        if (section) section.scrollIntoView({block:'start', behavior:'instant'});
+      });
+    }
   }
   // Le rappel reste un choix explicite : un fichier calendrier, aucun e-mail
   // ni notification envoyée par ATLAS et aucune donnée personnelle partagée.
@@ -211,6 +229,11 @@
   var previousRender = render;
   render = function () {
     if (route() === 'semaine') { weeklyPage(); return; }
+    // Anciens liens conservés : une seule page, mêmes données.
+    if (route() === 'aujourdhui' || route() === 'rythme') {
+      window.location.hash = '#/semaine?objectifs';
+      return;
+    }
     previousRender();
     if (route() === 'atlas') {
       var app = root.querySelector('.app-main');
@@ -281,6 +304,7 @@
 
   var css = document.createElement('style');
   css.textContent = '.atlas-week-page{max-width:1080px;padding-bottom:90px}.atlas-week-intro{padding:28px 0 20px}.atlas-week-intro h1{font-size:clamp(2.7rem,6vw,4.8rem);margin:12px 0}.atlas-week-account{background:#f1e9db;border:1px solid #d6c8b4;border-radius:18px;padding:16px 20px;margin:0 0 26px;display:flex;align-items:center;justify-content:space-between;gap:20px}.atlas-week-account span{font-size:.92rem;line-height:1.5}.atlas-week-account .btn{flex-shrink:0}.atlas-week-mission,.atlas-week-empty{padding:clamp(24px,4vw,48px);border:1px solid #c4b39a;border-radius:25px;background:#fcf6ea;box-shadow:0 12px 32px #392c1b0d}.atlas-week-card-top{display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap}.atlas-week-mission h2,.atlas-week-empty h2{font-size:clamp(2rem,4vw,3.5rem);margin:18px 0;overflow-wrap:anywhere}.atlas-week-select{display:grid;gap:7px;margin-top:20px;max-width:450px}.atlas-week-select label{font-size:.86rem}.atlas-week-select select{padding:12px;border:1px solid #c4b39a;border-radius:10px;max-width:100%;background:#fffaf2}.atlas-week-progress{display:flex;gap:18px;align-items:center}.atlas-week-meter{height:12px;flex:1;overflow:hidden;background:#e6ddcc;border-radius:99px}.atlas-week-meter span{display:block;height:100%;background:#647e5a;border-radius:99px;transition:width .3s}.atlas-week-next{margin:34px 0 24px;padding:25px;background:#f2e8d7;border-radius:18px}.atlas-week-next h3{font-size:clamp(1.3rem,3vw,2rem);margin:13px 0}.atlas-week-next .btn{margin-top:9px}.atlas-week-actions{display:flex;gap:12px;flex-wrap:wrap}.atlas-week-memory,.atlas-week-reviewed{font-size:.92rem;color:#546c4b}.atlas-week-reviewed{margin-top:17px}.atlas-week-ritual{margin-top:42px}.atlas-week-ritual h2{font-size:clamp(1.6rem,3vw,2.5rem)}.atlas-week-ritual-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.atlas-week-ritual-grid>div{padding:20px;background:#f1e9da;border-radius:16px}.atlas-week-ritual-grid h3{margin:12px 0 5px}.atlas-week-ritual-grid p{margin:0}.atlas-week-footer-actions{margin-top:25px;display:flex;gap:22px;align-items:center;flex-wrap:wrap}.atlas-week-linkcard{margin:0 0 25px;padding:22px;background:#f2e8d7;border-radius:19px;display:flex;justify-content:space-between;align-items:center;gap:20px}.atlas-week-linkcard strong{display:block;font-size:1.35rem;margin:8px 0}.atlas-week-linkcard p{margin:0}.atlas-week-linkcard .btn{flex-shrink:0}@media(max-width:700px){.atlas-week-intro{padding-top:10px}.atlas-week-account,.atlas-week-linkcard{flex-direction:column;align-items:flex-start}.atlas-week-ritual-grid{grid-template-columns:1fr}.atlas-week-account .btn,.atlas-week-linkcard .btn{width:100%;text-align:center}.atlas-week-actions .btn{width:100%}}@media(prefers-reduced-motion:reduce){.atlas-week-meter span{transition:none}}';
+  css.textContent += ".atlas-week-objectives{padding-top:45px;margin-top:36px;scroll-margin-top:82px}.atlas-week-objectives-intro{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:16px}.atlas-week-objectives-intro h2{font-size:clamp(2.3rem,5vw,3.9rem);margin:8px 0}.atlas-week-objectives-intro p{max-width:530px;color:#655e52}.atlas-week-objectives-intro .btn{flex:none}.atlas-week-objectives .todo-horizons{margin-top:20px!important}.atlas-week-objectives .todo-board{min-width:0}.atlas-week-objectives .todo-board .link{color:#f5dfb5!important;text-decoration:underline;text-underline-offset:4px}.atlas-week-objectives .todo-board .empty-caption{color:#e9d9be!important;font-style:italic}.atlas-week-objectives .todo-reset-note{margin:18px 0 0}@media(max-width:780px){.atlas-week-objectives{padding-top:26px;margin-top:24px}.atlas-week-objectives .todo-horizons{grid-template-columns:minmax(0,1fr)!important;gap:14px!important}.atlas-week-objectives .todo-board{padding:clamp(14px,4vw,21px)!important}.atlas-week-objectives .todo-board-head{gap:8px;flex-wrap:wrap}.atlas-week-objectives .todo-board-head h3{font-size:clamp(2.1rem,9vw,3rem)!important;overflow-wrap:anywhere}.atlas-week-objectives .todo-row{min-width:0}.atlas-week-objectives .todo-row span{min-width:0}.atlas-week-objectives-intro{align-items:stretch}.atlas-week-objectives-intro .btn{width:100%}}@media(max-width:360px){.atlas-week-objectives .todo-board-head h3{font-size:1.95rem!important}.atlas-week-objectives .todo-count{padding:6px 9px!important}}";
   document.head.appendChild(css);
   window.ATLAS_WEEKLY = Object.freeze({ mondayKey: mondayKey });
   render();

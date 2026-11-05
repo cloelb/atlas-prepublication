@@ -3,8 +3,10 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const html = fs.readFileSync('index.html','utf8');
 
-assert(html.includes('href="#/aujourdhui"'), 'Les anciens liens Objectifs doivent rester fonctionnels.');
+assert(html.includes('href="#/semaine?objectifs"'), 'Le lien Objectifs doit pointer vers Ma semaine.');
+assert(!html.includes('href="#/aujourdhui"'), 'Ne plus proposer de page Objectifs séparée.');
 assert(html.includes('>Objectifs</a><a href="#/missions"'), 'Le menu doit dire Objectifs.');
+assert(html.includes("['semaine?objectifs','☼','Objectifs']"), 'La navigation mobile doit viser les cartes colorées.');
 assert(!html.includes('>Aujourd’hui</a><a href="#/missions"'), 'Le titre du menu Aujourd’hui doit disparaître.');
 assert(html.includes("function todayPage(){"), 'Le contenu de la page doit rester inchangé.');
 assert(html.includes('try{await cloudStore.queue;}catch(_){}'),

@@ -1,0 +1,29 @@
+name: Vérifier le rendu mobile et ordinateur ATLAS
+on:
+  push:
+    branches:
+      - feature/atlas-semaine-objectifs-mobile-2026-11-05
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Installer Playwright pour piloter Chrome du runner
+        run: python -m pip install playwright==1.55.0
+      - name: Tester les petits écrans, les cartes et les sauvegardes locales
+        run: python tests/atlas-mobile-browser.py
+      - name: Conserver les captures de test pour inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-mobile-desktop-captures
+          path: artifacts/*.png
+          if-no-files-found: ignore
+          retention-days: 7
