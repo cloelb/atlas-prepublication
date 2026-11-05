@@ -7,6 +7,8 @@ assert(html.includes('<script src="assets/atlas-analytics.js"></script>'), 'La m
 assert(html.includes('noindex,nofollow'), 'Le site reste en prépublication.');
 assert(fs.readFileSync('docs/retention-j7-instagram.md','utf8').includes('current_date - 14'), 'Une cohorte J+7 doit être complète avant mesure.');
 assert(!/service_role|sb_secret_/.test(js), 'Aucune clé secrète dans le navigateur.');
+assert(js.includes('Événements supprimés automatiquement après 90 jours'), 'La durée de conservation doit être visible au consentement.');
+assert(fs.readFileSync('docs/retention-j7-instagram.md','utf8').includes('atlas-retention-events-90d'), 'Le job de purge doit être documenté.');
 
 const storage = new Map();
 const localStorage = {
