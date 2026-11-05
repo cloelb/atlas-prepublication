@@ -81,7 +81,7 @@ try:
                 page.locator(".atlas-week-objectives .todo-board").first.wait_for()
                 page.goto(BASE+"#/aujourdhui",wait_until="domcontentloaded")
                 page.wait_for_function("location.hash==='#/semaine?objectifs'")
-                page.locator(".atlas-week-objectives [data-action='new-action']").click()
+                page.locator(".atlas-week-objectives [data-action='new-action']").first.click()
                 page.locator("#action-form").wait_for()
                 page.locator("#action-form [name='title']").fill("Test de petit pas mobile")
                 page.locator("#action-form [name='horizon']").select_option("day")
