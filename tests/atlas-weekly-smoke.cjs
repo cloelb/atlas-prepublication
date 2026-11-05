@@ -17,7 +17,9 @@ let path = 'semaine', warnings = [], previousMissions = 0, previousRenders = 0, 
 const state = {schema:6, cap:'', missions:[], actions:[], notes:[], checkins:[], history:[]};
 const ctx = {
   root, dialogs, document:{createElement(){return {textContent:''};},head:{appendChild(){}}},
-  window:{}, state, session:null, structuredClone,
+  window:{location:{hash:'#/semaine'}}, state, session:null, structuredClone,
+  HORIZONS:{day:'Aujourd’hui',week:'Cette semaine',month:'Ce mois-ci',long:'À long terme'},
+  actionHorizonPanel(id){return '<section class="todo-board" data-horizon="'+id+'">'+id+'</section>';},
   route:()=>path,
   render(){previousRenders++;},
   pageFrame(_page, html){root.innerHTML=html;},
@@ -54,6 +56,10 @@ const ctx = {
 };
 vm.runInNewContext(script, ctx, {filename:'atlas-weekly.js'});
 assert(root.innerHTML.includes('Un pas après l’autre'), 'La page Ma semaine doit être accessible.');
+assert(root.innerHTML.includes('atlas-week-objectives'), 'Les Objectifs font partie de Ma semaine.');
+assert((root.innerHTML.match(/class="todo-board"/g)||[]).length===4, 'Les quatre périodes doivent apparaître dans la page unique.');
+assert(script.includes('.atlas-week-objectives .todo-board-head h3'), 'Les cartes doivent être adaptées aux petits téléphones.');
+assert(script.includes("route() === 'aujourdhui' || route() === 'rythme'"), 'Les anciens liens doivent rejoindre la page unifiée.');
 assert(root.innerHTML.includes('Essai sur cet appareil'), 'Le mode invité doit être annoncé.');
 assert(root.innerHTML.includes('première Mission'), 'Un visiteur doit pouvoir commencer.');
 assert.equal(ctx.window.ATLAS_WEEKLY.mondayKey(new Date('2026-11-04T12:00:00Z')), '2026-11-02');
