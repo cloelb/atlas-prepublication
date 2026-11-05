@@ -91,7 +91,7 @@ try:
                 page.get_by_text("Test de petit pas mobile",exact=True).first.wait_for()
                 card=page.locator(".atlas-week-objectives .todo-row").filter(
                     has_text="Test de petit pas mobile").first
-                card.locator("input[type='checkbox']").check()
+                card.locator("input[type='checkbox']").click()
                 page.locator(".atlas-week-objectives .todo-row.completed").filter(
                     has_text="Test de petit pas mobile").first.wait_for()
                 page.reload(wait_until="domcontentloaded")
