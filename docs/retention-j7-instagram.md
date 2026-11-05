@@ -75,5 +75,21 @@ La rubrique publique choisit chaque semaine une mission **déjà publiée explic
 
 **Garde-fou :** conserver `noindex,nofollow,noarchive` tant que ces vérifications réelles ne sont pas terminées.
 
-### Effacement / durée de conservation
-La suppression de l'identifiant dans le navigateur arrête la mesure future mais ne supprime pas les anciens événements en base. Il faut définir une durée de conservation puis appliquer une purge côté serveur avant lancement public. Ne pas présenter ce consentement comme une suppression totale de l'historique.
+### Effacement / durée de conservation (active depuis le 5 novembre 2026)
+Les événements de mesure facultative sont conservés **au maximum 90 jours après leur enregistrement**, puis supprimés automatiquement par Supabase. La migration `atlas_retention_90d_purge` (20261105071000) active le job `atlas-retention-events-90d` : chaque jour à **03 h 15 UTC**, il exécute uniquement :
+
+```sql
+delete from public.atlas_retention_events
+where created_at < now() - interval '90 days';
+```
+
+Aucun autre tableau (missions, carnets, sauvegardes personnelles, comptes) n'est concerné. Cette durée permet de terminer les cohortes J+7 à J+13, tout en réduisant l'historique conservé. Les statistiques des cohortes de plus de 90 jours ne sont plus disponibles sans agrégation préalable.
+
+**Vérification côté Supabase :** dans SQL Editor, exécuter
+```sql
+select jobname, active, schedule, command
+from cron.job where jobname = 'atlas-retention-events-90d';
+```
+Le résultat attendu est `active = true`, `15 3 * * *` et une suppression limitée à `atlas_retention_events`. Dans Integrations → Cron, l'historique permet de contrôler la première exécution programmée.
+
+La suppression de l'identifiant dans le navigateur arrête la mesure future mais **ne supprime pas immédiatement les événements déjà transmis**. Ces événements sont purgés à l'échéance des 90 jours. Ne pas présenter la révocation du consentement comme une suppression immédiate de l'historique.
